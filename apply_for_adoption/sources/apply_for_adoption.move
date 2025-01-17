@@ -47,7 +47,7 @@ module apply_for_adoption::apply_for_adoption {
         // 领养动物id
         animalId: String,
         // 领养花费币 <T>
-        amount: u64,
+        amount: u64,  // TODO 不能用u64类型，要质押币，要用Coin<SUI>或者Balance<SUI>
         // 回访记录
         records: vector<Recort>,
         // 领养人链上地址（用于交退押金）,指定领养人，避免被其他人领养
@@ -64,7 +64,7 @@ module apply_for_adoption::apply_for_adoption {
         // 宠物图片
         pic: String,
         // 记录日期
-        date: Clock,
+        date: Clock, // TODO 要用u64，保存时间戳即可
     }
 
     // 动物信息
@@ -111,7 +111,7 @@ module apply_for_adoption::apply_for_adoption {
     //==============================================================================================
     fun init(ctx: &mut TxContext) {
         // 公共浏览所有的合约
-        transfer::share_ooject(AdoptContracts {
+        transfer::share_ooject(AdoptContracts { // TODO 拼写错误
             id: object::new(ctx),
             adoptContracts: table::new(ctx),
             userContracts: table::new(ctx),
@@ -194,7 +194,7 @@ module apply_for_adoption::apply_for_adoption {
             remark
         };
         // 平台拥有合约
-        transfer::transfer(new_contract, owner);
+        transfer::transfer(new_contract, owner); // TODO 比较大的问题，这个合约应该要是share object，否则用户不能使用这个合约对象，也就不能做签约等操作
         // 放到合约记录中
         if (animalContains) {
             // 存在则直接添加
