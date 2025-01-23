@@ -81,7 +81,7 @@ module apply_for_adoption::apply_for_adoption {
     }
 
     // 回访记录
-    public struct Recort has store, drop {
+    public struct Recort has store, drop { // TODO 拼写错误
         // 宠物图片
         pic: String,
         // 记录日期
@@ -144,7 +144,7 @@ module apply_for_adoption::apply_for_adoption {
     // Entry Functions
     //==============================================================================================
     // 创建合约
-    public entry fun create_adopt_contract(
+    public entry fun create_adopt_contract( // TODO 看看要不要加权限校验，只有平台的钱包地址能创建合同，下面的改合同状态，销毁合同等操作同理
         // 领养人的x账号，用于校验用户信息
         xId: String,
         // 领养动物id
@@ -211,7 +211,7 @@ module apply_for_adoption::apply_for_adoption {
         let remark = b"".to_string();
         // 创建一个新的领养合约
         let new_contract = AdoptContract {
-            id: id,
+            id: id, // TODO id应该是object::new(ctx)这样创建的
             // 领养用户xid
             xId,
             // 领养动物id
@@ -403,7 +403,7 @@ module apply_for_adoption::apply_for_adoption {
     }
 
     // todo 平台-审核上传的回访记录
-    public fun audit_record(ctx: &mut TxContext, adoptContractID: ID, adoptContains: &mut AdoptContracts,
+    public fun audit_record(ctx: &mut TxContext, adoptContractID: ID, adoptContains: &mut AdoptContracts, // TODO ctx: &mut TxContext这个参数要放在最后，否则无法调用这个方法
                             // 审核结果：true-通过；false-不通过
                             auditResult: bool,
                             // 审核备注
