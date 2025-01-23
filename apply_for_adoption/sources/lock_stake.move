@@ -13,7 +13,7 @@ module apply_for_adoption::lock_stake {
     use apply_for_adoption::apply_for_adoption::{AdoptContract, getContractStatus, getUnusualStatus,
         getContractRecordTimes, getContractAmount, getContracPlatFormAddress, setContracLockedStake
         , getContracAdopterAddress, getLackLockStakeExceptionStatus, getContracAuditPassTimes};
-    use std::option::{none, Option,is_some};
+    use std::option::{none, Option, is_some};
     use std::string::String;
 
 
@@ -32,7 +32,7 @@ module apply_for_adoption::lock_stake {
     //==============================================================================================
 
     /// 质押合同
-    public struct LockedStake has store,drop,copy {
+    public struct LockedStake has store {
         id: ID,
         staked_sui: Option<StakedSui>,
         sui: Balance<SUI>,
@@ -88,7 +88,7 @@ module apply_for_adoption::lock_stake {
         // 剩余的balance
         let contractBalance = balance::split(&mut ls.sui, amount - platformAmount);
         // 将剩余的balance 添加到 Sui 系统中
-        sui_system::request_add_stake_non_entry(
+        let _ = sui_system::request_add_stake_non_entry(
             sui_system,
             coin::from_balance(contractBalance, ctx),
             platformAddress,
@@ -109,7 +109,7 @@ module apply_for_adoption::lock_stake {
     ): u64 {
         // 获取质押对象
         let stake = ls.staked_sui;
-        assert!(is_some(&stake) , getLackLockStakeExceptionStatus());
+        assert!(is_some(&stake), getLackLockStakeExceptionStatus());
         // Sui 系统模块提供的函数，用于解质押并结算奖励。会将质押对象（StakedSui）转换为 SUI 余额，包括本金和累积的奖励
         let sui_balance = request_withdraw_stake_non_entry(sui_system, some(stake), ctx);
         let status = getContractStatus(contract);
@@ -161,7 +161,17 @@ module apply_for_adoption::lock_stake {
     //==============================================================================================
     // Update Functions
     //==============================================================================================
-
+    /// 通过解构删除
+    public(package) fun destroy(old_ls: LockedStake): ID {
+        let LockedStake {
+            id: id,
+            staked_sui: _,
+            sui: _,
+            // 平台地址
+            platformAddress: _
+        } = old_ls;
+        id
+    }
 
     //==============================================================================================
     // Helper Functions

@@ -63,7 +63,7 @@ module apply_for_adoption::apply_for_adoption {
         // 领养花费币 <T>
         amount: u64,
         // 回访记录
-        records: vector<Recort>,
+        records: vector<Record>,
         // 领养人链上地址（用于交退押金）,指定领养人，避免被其他人领养
         adopterAddress: address,
         // 平台地址
@@ -81,7 +81,7 @@ module apply_for_adoption::apply_for_adoption {
     }
 
     // 回访记录
-    public struct Recort has store, drop { // TODO 拼写错误
+    public struct Record has store, drop {
         // 宠物图片
         pic: String,
         // 记录日期
@@ -138,13 +138,14 @@ module apply_for_adoption::apply_for_adoption {
             userContracts: table::new<String, vector<ID>>(ctx),
             contracts: table::new<ID, AdoptContract>(ctx),
         });
+        // todo 添加平台地址，避免其他人生成合同
     }
 
     //==============================================================================================
     // Entry Functions
     //==============================================================================================
     // 创建合约
-    public entry fun create_adopt_contract( // TODO 看看要不要加权限校验，只有平台的钱包地址能创建合同，下面的改合同状态，销毁合同等操作同理
+    public entry fun create_adopt_contract(
         // 领养人的x账号，用于校验用户信息
         xId: String,
         // 领养动物id
@@ -205,7 +206,7 @@ module apply_for_adoption::apply_for_adoption {
         let uid = object::new(ctx);
         let id = object::uid_to_inner(&uid);
         // 空回访记录
-        let records = vector::empty<Recort>();
+        let records = vector::empty<Record>();
         // 合约状态：未生效
         let status = NotYetInForce;
         let remark = b"".to_string();
@@ -343,6 +344,7 @@ module apply_for_adoption::apply_for_adoption {
     }
 
     /// 用户-签署合同并缴纳押金
+    // todo 变更平台抽成获取日常运营费用逻辑：添加合同时明确捐赠部分费用，可为0
     public fun sign_adopt_contract(adoptContractID: ID, adoptContains: &mut AdoptContracts
                                    , sui_system: &mut SuiSystemState, ctx: &mut TxContext) {
         // 校验合同是否存在
@@ -390,7 +392,7 @@ module apply_for_adoption::apply_for_adoption {
             // 校验是否有重复上传
             assert!(yearMonth != lastYearMonth, RepeatUploadException);
         };
-        let record = Recort {
+        let record = Record {
             pic,
             date: clock::timestamp_ms(ctx),
             yearMonth,
@@ -403,11 +405,14 @@ module apply_for_adoption::apply_for_adoption {
     }
 
     // todo 平台-审核上传的回访记录
-    public fun audit_record(ctx: &mut TxContext, adoptContractID: ID, adoptContains: &mut AdoptContracts, // TODO ctx: &mut TxContext这个参数要放在最后，否则无法调用这个方法
+    public fun audit_record(adoptContractID: ID,
+                            adoptContains: &mut AdoptContracts,
                             // 审核结果：true-通过；false-不通过
                             auditResult: bool,
                             // 审核备注
-                            auditRemark: String) {
+                            auditRemark: String,
+                            sui_system: &mut SuiSystemState,
+                            ctx: &mut TxContext) {
         // 校验合同是否存在
         let adoptContract = table::borrow_mut(&mut adoptContains.contracts, adoptContractID);
         assert!(adoptContract.status == InForce, NotExsitContract);
@@ -423,14 +428,14 @@ module apply_for_adoption::apply_for_adoption {
         // 更新回访记录备注
         lastRecord.auditRemark = auditRemark;
         // 更新审核结果
-        lastRecord.auditResult = Some(auditResult);
+        lastRecord.auditResult = option::some<bool>(auditResult);
         // 校验合同审核通过次数是否等于需要记录次数
         if (adoptContract.auditPassTimes == adoptContract.recordTimes) {
             // 更新合同状态
             adoptContract.status = Finish;
             let lock_stake = getLockStake(adoptContract);
             // 退还押金与利息
-            let _ = lock_stake::unstake(lock_stake, sui_system, adoptContract, true, ctx);
+            let _ = lock_stake::unstake(lock_stake,sui_system, adoptContract, true, ctx);
         };
         // todo 通知用户审核结果
     }
@@ -472,9 +477,8 @@ module apply_for_adoption::apply_for_adoption {
 
     /// 获取合约中的
     public(package) fun getLockStake(contract: &mut AdoptContract): &mut LockedStake {
-        let lock_stake = contract.ls;
-        assert!(is_some(&lock_stake), LackLockStakeException);
-        option::borrow_mut(&mut lock_stake)
+        assert!(is_some(&contract.ls), LackLockStakeException);
+        option::borrow_mut(&mut contract.ls)
     }
 
     /// 获取合约的状态
@@ -492,9 +496,9 @@ module apply_for_adoption::apply_for_adoption {
         contract.recordTimes
     }
 
-    /// 获取合约的押金数量
-    public(package) fun getContracLockedStake(contract: &AdoptContract): Option<LockedStake> {
-        contract.ls
+    /// 获取合约的质押合同
+    public(package) fun getContracLockedStake(contract: &AdoptContract): & Option<LockedStake> {
+        &contract.ls
     }
 
     /// 获取合约的领养用户地址
@@ -512,13 +516,22 @@ module apply_for_adoption::apply_for_adoption {
         contract.auditPassTimes
     }
 
+    /// 获取合约的id
+    public(package) fun getContracId(contract: &AdoptContract): ID {
+        contract.id
+    }
+
     //==============================================================================================
     // setter Functions
     //==============================================================================================
 
     /// 设置合约的质押合同
-    public(package) fun setContracLockedStake(contract: &mut AdoptContract, ls: LockedStake) {
-        contract.ls = Option::some(ls);
+    public(package) fun setContracLockedStake(contract: &mut AdoptContract,
+                                              new_ls: LockedStake) {
+        let old_ls = option::extract(&mut contract.ls);
+        let _ = lock_stake::destroy(old_ls);
+        // 再赋值新的
+        option::fill(&mut contract.ls, new_ls);
     }
 
     //==============================================================================================
@@ -549,9 +562,33 @@ module apply_for_adoption::apply_for_adoption {
         // todo 通知前端
         adoptContract
     }
+
     //==============================================================================================
     // Helper Functions
     //==============================================================================================
+    #[test_only]
+    public fun init_for_testing(ctx: &mut TxContext) {
+        init(ctx);
+    }
+
+    #[test_only]
+    public fun clean_contracts(contracts: &mut AdoptContracts) {
+        // 清空列表
+        table::destroy_empty(contracts.userContracts);
+        table::destroy_empty(contracts.animalContracts);
+        table::destroy_empty(contracts.contracts);
+    }
+
+    #[test_only]
+    public fun get_contract(contracts: &mut AdoptContracts, animalId: String, xId: String): AdoptContract {
+        assert!(table::contains(&mut contracts.userContracts, xId), NotExsitContract);
+        let contractIds = table::borrow_mut(&mut contracts.userContracts, xId);
+        let (contract, index) = getAdoptContract(contractIds, &mut contracts.contracts, animalId);
+        // 校验合同一定存在
+        assert!(is_some(&contractOption), NotExsitContract);
+        // 获取 option 内部值
+        option::destroy_some<(AdoptContract)>(contractOption)
+    }
 }
 
 
