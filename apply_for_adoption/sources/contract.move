@@ -44,7 +44,7 @@ module apply_for_adoption::contract {
         // todo 规定传记录次数
         recordTimes: u64,
         // 质押合同
-        ls: Option<LockedStake>,
+        locked_stake: Option<LockedStake>,
         // 审核通过次数
         auditPassTimes: u64,
         // 捐赠给平台的币
@@ -81,9 +81,9 @@ module apply_for_adoption::contract {
     public struct AdoptContracts has key {
         id: UID,
         // key:animalId value:vector<ID> 动物id，合约
-        animalContracts: Table<String, vector<ID>>,
+        animal_contracts: Table<String, vector<ID>>,
         // key:xId value:vector<ID> x用户id，合约
-        userContracts: Table<String, vector<ID>>,
+        user_contracts: Table<String, vector<ID>>,
         contracts: Table<ID, AdoptContract>,
     }
 
@@ -94,8 +94,8 @@ module apply_for_adoption::contract {
         // 公共浏览所有的合约
         transfer::share_object(AdoptContracts {
             id: object::new(ctx),
-            animalContracts: table::new<String, vector<ID>>(ctx),
-            userContracts: table::new<String, vector<ID>>(ctx),
+            animal_contracts: table::new<String, vector<ID>>(ctx);,
+            user_contracts: table::new<String, vector<ID>>(ctx);,
             contracts: table::new<ID, AdoptContract>(ctx),
         });
         // todo 添加平台地址，避免其他人生成合同
@@ -140,7 +140,7 @@ module apply_for_adoption::contract {
             // 合约需要记录的次数
             recordTimes,
             // 质押合同
-            ls: none(),
+            locked_stake: none(),
             // 审核通过次数
             auditPassTimes: 0,
             // 捐赠给平台的币
@@ -155,8 +155,8 @@ module apply_for_adoption::contract {
     // -----------------------------------------AdoptContract-----------------------------------------
     /// 获取合约中的
     public(package) fun get_lock_stake(contract: &mut AdoptContract): &mut LockedStake {
-        assert!(is_some(&contract.ls), LackLockStakeException);
-        option::borrow_mut(&mut contract.ls)
+        assert!(is_some(&contract.locked_stake), LackLockStakeException);
+        option::borrow_mut(&mut contract.locked_stake)
     }
 
     /// 获取合约的动物id
@@ -175,12 +175,12 @@ module apply_for_adoption::contract {
     }
 
     /// 获取合约的押金数量
-    public(package) fun getContractAmount(contract: &AdoptContract): u64 {
+    public(package) fun get_contract_amount(contract: &AdoptContract): u64 {
         contract.amount
     }
 
     /// 获取合约的捐赠数量
-    public(package) fun getContractDonateAmount(contract: &AdoptContract): u64 {
+    public(package) fun get_contract_donate_amount(contract: &AdoptContract): u64 {
         contract.donateAmount
     }
 
@@ -190,23 +190,24 @@ module apply_for_adoption::contract {
     }
 
     /// 获取合约的质押合同
-    public(package) fun getContracLockedStake(contract: &AdoptContract): & Option<LockedStake> {
-        &contract.ls
+    public(package) fun get_contrac_locked_stake(contract: &AdoptContract): & Option<LockedStake> {
+        &contract.locked_stake
     }
 
     /// 设置合约的质押合同
     // public(package) fun setContracLockedStake(contract: &mut AdoptContract, new_ls: LockedStake) {
     //     option::fill(&mut contract.ls, new_ls);
     // }
-    public(package) fun setContracLockedStake(contract: &mut AdoptContract,
-                                              new_ls: LockedStake) {
+    public(package) fun set_contrac_locked_stake(contract: &mut AdoptContract,
+                                                 new_ls: LockedStake,
+                                                 ctx: &mut TxContext) {
         // 获取合约的质押合同
-        let old_ls_option = contract::getContracLockedStake(contract);
-        let old_ls = option::extract(&mut old_ls_option);
+        // let old_ls_option = contract::getContracLockedStake(contract);
+        // let old_ls = option::extract(&mut old_ls_option);
         // 销毁旧的质押合同
-        let _ = lock_stake::destroy(old_ls);
+        // let _ = lock_stake::destroy(old_ls,ctx);
         // 再赋值新的
-        option::fill(&mut contract.ls, new_ls);
+        option::fill(&mut contract.locked_stake, new_ls);
     }
 
     /// 获取合约的领养用户地址
@@ -262,20 +263,18 @@ module apply_for_adoption::contract {
     // ----------------------------------------AdoptContract-----------------------------------------
     // -----------------------------------------AdoptContracts-----------------------------------------
     /// 获取合约集合
-    public(package) fun get_adopt_contracts(adopt_contracts: &AdoptContracts): Table<ID, AdoptContract> {
-        adopt_contracts.contracts
+    public(package) fun get_adopt_contracts(adopt_contracts: &AdoptContracts): &mut Table<ID, AdoptContract> {
+        &mut adopt_contracts.contracts
     }
 
     /// 获取合约集的动物合约
-    public(package) fun get_animal_contract_table(
-        adopt_contracts: &AdoptContracts
-    ): Table<String, vector<ID>> {
-        adopt_contracts.animalContracts
+    public(package) fun get_animal_contract_table(adopt_contracts: &AdoptContracts): &mut Table<String, vector<ID>> {
+        &mut adopt_contracts.animal_contracts
     }
 
     /// 获取合约集的用户合约
-    public(package) fun get_user_contract_table(adoptContracts: &AdoptContracts): &mut Table<String, vector<ID>> {
-        &mut adoptContracts.userContracts
+    public(package) fun get_user_contract_table(adoptContracts: &AdoptContracts): &mut  Table<String, vector<ID>> {
+        &mut adoptContracts.user_contracts
     }
 
     // -----------------------------------------AdoptContracts-----------------------------------------
@@ -311,12 +310,4 @@ module apply_for_adoption::contract {
     //==============================================================================================
     // Helper Functions
     //==============================================================================================
-
-    #[test_only]
-    public fun clean_contracts(contracts: &mut AdoptContracts) {
-        // 清空列表
-        table::destroy_empty(contracts.userContracts);
-        table::destroy_empty(contracts.animalContracts);
-        table::destroy_empty(contracts.contracts);
-    }
 }
