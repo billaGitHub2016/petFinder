@@ -3,25 +3,14 @@ module apply_for_adoption::lock_stake {
     //==============================================================================================
     // Dependencies
     //==============================================================================================
-    use sui::object::{UID, Self, ID};
-    use sui::balance::{Balance, Self};
-    use sui::vec_map::{Self, VecMap};
-    use sui::coin::{Self};
-    use sui::sui::SUI;
-    use sui_system::staking_pool::StakedSui;
-    use sui_system::sui_system::{Self, SuiSystemState, request_withdraw_stake_non_entry};
-    use apply_for_adoption::apply_for_adoption::{AdoptContract, getContractStatus, getUnusualStatus,
-        getContractRecordTimes, getContractAmount, getContracPlatFormAddress, setContracLockedStake
-        , getContracAdopterAddress, getLackLockStakeExceptionStatus, getContracAuditPassTimes};
-    use std::option::{none, Option, is_some};
-    use std::string::String;
+    use sui::object::{Self, ID};
+    use sui_system::staking_pool::{StakedSui, StakingPool};
 
 
     //==============================================================================================
     // Constants
     //==============================================================================================
-    /// 余额不足
-    const EInsufficientBalance: u64 = 200;
+
 
     //==============================================================================================
     // Error codes
@@ -34,128 +23,56 @@ module apply_for_adoption::lock_stake {
     /// 质押合同
     public struct LockedStake has store {
         id: ID,
-        staked_sui: Option<StakedSui>,
-        sui: Balance<SUI>,
+        // 质押合同
+        staking_pool: StakingPool,
+        staked_sui: StakedSui,
         // 平台地址
         platformAddress: address,
     }
 
-    /// 用户-创建质押合同
-    public fun new_locked_stake(ctx: &mut TxContext): LockedStake {
-        let uid = object::new(ctx);
-        let id = object::uid_to_inner(&uid);
-        LockedStake {
-            id,
-            staked_sui: option::none<StakedSui>(),
-            sui: balance::zero(),
-            platformAddress: sui::tx_context::sender(ctx),
-        }
-    }
 
     //==============================================================================================
     // Event Structs
     //==============================================================================================
 
     //==============================================================================================
-    // Init
+    // Functions
     //==============================================================================================
 
-    //==============================================================================================
-    // Entry Functions
-    //==============================================================================================
-    // todo 签署合同,生成质押
-    /// 合同上锁
-    public fun stake(
-        ls: LockedStake,
-        sui_system: &mut SuiSystemState,
-        // 平台地址
-        platformAddress: address,
-        ctx: &mut TxContext,
-        // 合约信息
-        contract: &mut AdoptContract,
-    ) {
-        // 合约押金
-        let amount = getContractAmount(contract);
-        // 校验用户余额是否足够
-        assert!(balance::value(&ls.sui) >= amount, EInsufficientBalance);
-        // 捐赠给平台金额，规则：平台获取部门=押金 /（合约需要记录的次数+1）
-        let recordTimes = getContractRecordTimes(contract);
-        let platformAmount = amount / (recordTimes + 1);
-        // 拆分balance
-        let platFormBalance = balance::split(&mut ls.sui, platformAmount);
-        // 存储进平台
-        let _ = store_to_target(&ls, platformAddress, balance::value(&platFormBalance));
-        // 剩余的balance
-        let contractBalance = balance::split(&mut ls.sui, amount - platformAmount);
-        // 将剩余的balance 添加到 Sui 系统中
-        let _ = sui_system::request_add_stake_non_entry(
-            sui_system,
-            coin::from_balance(contractBalance, ctx),
-            platformAddress,
-            ctx,
-        );
-        // 质押合同存储到领养合约中
-        setContracLockedStake(contract, ls);
-    }
-
-    /// 平台-解锁质押合同，返回该返回的币
-    public fun unstake(
-        ls: &mut LockedStake,
-        sui_system: &mut SuiSystemState,
-        contract: &mut AdoptContract,
-        // 是否全部退还
-        isAll: bool,
-        ctx: &mut TxContext,
-    ): u64 {
-        // 获取质押对象
-        let stake = ls.staked_sui;
-        assert!(is_some(&stake), getLackLockStakeExceptionStatus());
-        // Sui 系统模块提供的函数，用于解质押并结算奖励。会将质押对象（StakedSui）转换为 SUI 余额，包括本金和累积的奖励
-        let sui_balance = request_withdraw_stake_non_entry(sui_system, some(stake), ctx);
-        let status = getContractStatus(contract);
-        let platformAddress = getContracPlatFormAddress(contract);
-        // 押金与利息
-        let amount = balance::value(&sui_balance);
-        // 根据是否全部退还的条件，进行退还押金
-        if (isAll) {
-            // 退还押金与利息给用户
-            store_to_target(ls, getContracAdopterAddress(con), amount)
-        } else {
-            // 退养状态
-            if (getContractStatus(contract) == getUnusualStatus()) {
-                // 退还比例：（质押期间的利息+本金） / （合约需要记录的次数+1）* 审核通过次数
-                let recordTimes = getContractRecordTimes(contract);
-                let auditPassTimes = getContracAuditPassTimes(contract);
-                let adopterAmount = amount / (recordTimes + 1) * auditPassTimes;
-                // 平台获取剩余的部分
-                let platFormAmount = amount - adopterAmount;
-                store_to_target(ls, platformAddress, platFormAmount);
-                let adopterAddress = getContracAdopterAddress(contract);
-                // 退还押金与利息给用户
-                store_to_target(ls, adopterAddress, adopterAmount)
-                // 异常状态
-            } else if (status == getUnusualStatus()) {
-                // 全数退还给平台
-                store_to_target(ls, platformAddress, amount)
-            } else {
-                0
-            }
+    /// 用户-创建质押合同
+    public fun new_locked_stake(staking_pool: StakingPool, staked_sui: StakedSui, ctx: &mut TxContext): LockedStake {
+        let uid = object::new(ctx);
+        let id = object::uid_to_inner(&uid);
+        LockedStake {
+            id,
+            staking_pool,
+            staked_sui,
+            platformAddress: sui::tx_context::sender(ctx),
         }
-        // 前端通知用户
     }
 
+    //==============================================================================================
+    // Getter/Setter Functions
+    //==============================================================================================
 
-    //==============================================================================================
-    // Getter Functions
-    //==============================================================================================
-    public fun sui_balance(ls: &LockedStake): u64 {
-        balance::value(&ls.sui)
+    /// 获取LockedStake的ID
+    public(package) fun get_id(ls: &LockedStake): ID {
+        ls.id
     }
 
-    // 存储到对应地址
-    public fun store_to_target(ls: &LockedStake, targetAddress: address, amount: u64): u64 {
-        let _ = balance::transfer(ls.sui, targetAddress, amount);
-        amount
+    /// 获取LockedStake的质押SUI
+    public(package) fun get_staked_sui(ls: &LockedStake): StakedSui {
+        ls.staked_sui
+    }
+
+    /// 获取LockedStake的质押SUI
+    public(package) fun get_staking_pool(ls: &LockedStake): StakingPool {
+        ls.staking_pool
+    }
+
+    /// 获取LockedStake的平台地址
+    public(package) fun get_platform_address(ls: &LockedStake): address {
+        ls.platformAddress
     }
 
     //==============================================================================================
@@ -165,11 +82,26 @@ module apply_for_adoption::lock_stake {
     public(package) fun destroy(old_ls: LockedStake): ID {
         let LockedStake {
             id: id,
-            staked_sui: _,
-            sui: _,
+            staking_pool,
+            staked_sui,
             // 平台地址
             platformAddress: _
         } = old_ls;
+        // 销毁staked_sui
+        let StakedSui { id: staked_sui_uid, pool_id: _, stake_activation_epoch: _, principal: _ } = staked_sui;
+        object::delete(staked_sui_uid);
+        // 摧毁staking_pool
+        let StakingPool {
+            id: staking_pool_uid, activation_epoch: _, deactivation_epoch: _, rewards_pool: _,
+            pool_token_balance: _,
+            exchange_rates: _,
+            pending_stake: _,
+            pending_total_sui_withdraw: _,
+            pending_pool_token_withdraw: _,
+            extra_fields: _
+        } = staking_pool;
+        let staking_pool_uid = object::borrow_uid(&staking_pool_uid);
+        object::delete(staking_pool_uid);
         id
     }
 
