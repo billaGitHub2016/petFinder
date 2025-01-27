@@ -5,9 +5,8 @@ module apply_for_adoption::apply_for_adoption {
     //==============================================================================================
     use sui::object::{UID, Self, ID};
     use std::string::String;
-    use std::vector::{Self, length, borrow, empty, push_back, swap_remove, borrow_mut};
+    use std::vector::{Self, length, empty, push_back, borrow_mut};
     use sui::event;
-    use sui::table::{Self, Table};
     use std::option::{Option, Self, some, none, is_some, extract, destroy_some};
     use sui::balance::{Balance, value, split};
     use sui::coin::{Coin, Self};
@@ -19,12 +18,9 @@ module apply_for_adoption::apply_for_adoption {
         AdoptContract,
         get_contract_status,
         AdoptContracts,
-        get_adopt_contracts,
-        get_user_contract_table,
-        getContractXId,
+        add_contract,
         get_lock_stake,
         set_contract_status,
-        getContractID,
         get_contract_records,
         get_contract_record_times,
         get_contract_amount,
@@ -32,19 +28,17 @@ module apply_for_adoption::apply_for_adoption {
         set_contract_remark,
         get_contrac_adopter_address,
         get_contrac_audit_pass_times,
-        get_animal_contract_table,
         get_record_audit_result,
         get_record_year_month,
         create_new_record,
         set_contrac_audit_pass_times,
         set_record_audit_result,
-        get_contrac_animal_id,
         get_contract_donate_amount,
         set_contrac_locked_stake,
-        create_new_contract,
-        Record
+        create_new_contract, check_user_is_unusual,
+        Record, get_adopt_contracts_by_id, remove_contract, get_adopt_contract, check_animal_is_adopted
     };
-    use apply_for_adoption::lock_stake::{new_locked_stake, get_staked_sui};
+    use apply_for_adoption::lock_stake::{new_locked_stake, get_withdraw_balance};
     use sui_system::sui_system::{Self, SuiSystemState, request_withdraw_stake_non_entry, request_add_stake_non_entry};
 
 
@@ -52,13 +46,13 @@ module apply_for_adoption::apply_for_adoption {
     // Constants
     //==============================================================================================
     /// 0-未生效
-    const NotYetInForce: u8 = 0;
+    const NOT_YET_IN_FORCE: u8 = 0;
     /// 1-生效
     const IN_FORCE: u8 = 1;
     /// 2-完成（完成回访）
-    const Finish: u8 = 2;
+    const FINISH: u8 = 2;
     /// 3-放弃
-    const GiveUp: u8 = 3;
+    const GIVE_UP: u8 = 3;
     /// 4-异常
     const UNSUAL: u8 = 4;
 
@@ -68,9 +62,9 @@ module apply_for_adoption::apply_for_adoption {
     /// 已被领养
     const ADOPTED_EXCEPTION: u64 = 100;
     /// 领养异常
-    const UnsusalException: u64 = 101;
+    const UNSUAL_ERROR: u64 = 101;
     /// 操作地址错误
-    const ErrorAddress: u64 = 102;
+    const ERROR_ADDRESS: u64 = 102;
     /// 找不到合约
     const NOT_EXSIT_CONTRACT: u64 = 103;
     /// 重复上传
@@ -78,13 +72,13 @@ module apply_for_adoption::apply_for_adoption {
     /// 审核异常
     const AUDIT_EXCEPTION: u64 = 105;
     /// 押金异常
-    const ContractAmountException: u64 = 106;
+    const CONTRACT_AMOUNT_EXCEPTION: u64 = 106;
     /// 回访次数异常
     const CONTRRACT_RECORD_TIMES_EXCEPTION: u64 = 107;
     /// 缺少质押合同
     const LackLockStakeException: u64 = 108;
     /// 合同已完成，不需要再上传
-    const FinshStatus: u64 = 109;
+    const FINISH_STATUS_ERROR: u64 = 109;
     /// 合同已完成，不需要再上传
     const StakedSuiNotExsist: u64 = 110;
     /// 余额不足
@@ -116,86 +110,40 @@ module apply_for_adoption::apply_for_adoption {
         // 领养合约金额
         amount: u64,
         // 领养人链上地址(用于校验用户以及退还押金)
-        adopterAddress: address,
+        adopter_address: address,
         // 合约记录
-        adoptContracts: &mut AdoptContracts,
+        contracts: &mut AdoptContracts,
         // 合约需要记录的次数
-        recordTimes: u64,
+        record_times: u64,
         // 捐赠给平台的币
         donateAmount: u64,
         // 获取 transcation 需要的信息
         ctx: &mut TxContext,
     ) {
-        // 获取动物合约集合
-        let animal_contracts_table = get_animal_contract_table(adoptContracts);
-        // 获取用户合约集合
-        let mut user_contracts_table = get_user_contract_table(adoptContracts);
-        // 获取合约集合
-        let contracts_table = get_adopt_contracts(adoptContracts);
         // todo 怎么确认当前创建合约的人是平台不是其他人
         // 平台
         let owner = sui::tx_context::sender(ctx);
         // 校验合约押金应该>0
-        assert!(amount > 0, ContractAmountException);
+        assert!(amount > 0, CONTRACT_AMOUNT_EXCEPTION);
         // 校验回访次数应该 >0
-        assert!(recordTimes > 0, CONTRRACT_RECORD_TIMES_EXCEPTION);
-        // 查询动物是否有被领养
-        let animalContains = table::contains( animal_contracts_table, animal_id);
-        if (animalContains) {
-            // 注意：不存在会报错
-            let contract_ids = table::borrow_mut( animal_contracts_table, animal_id);
-            let contract_lenght = length(contract_ids);
-            let mut index = 0;
-            while (contract_lenght > index) {
-                let contract_id = vector::borrow_mut(contract_ids, index);
-                let contract_id_entry = *contract_id;
-                let contract = table::borrow(contracts_table, contract_id_entry);
-                let status = get_contract_status(contract);
-                // 校验动物不存在生效或完成的合同
-                assert!(status != IN_FORCE || status != Finish, ADOPTED_EXCEPTION);
-                index = index + 1;
-            };
-        };
-        let user_contains = table::contains(user_contracts_table, x_id);
-        if (user_contains) {
-            // 查询该用户是否有异常领养记录
-            let contract_ids = table::borrow_mut( user_contracts_table, x_id);
-            let contract_length = length(contract_ids);
-            let mut index = 0;
-            while (contract_length > index) {
-                let contract_id = borrow_mut(contract_ids, index);
-                let contract_id_entry = *contract_id;
-                let contract = table::borrow( contracts_table, contract_id_entry);
-                index = index + 1;
-                let status = get_contract_status(contract);
-                // 校验动物不存在异常状态
-                assert!(status != UNSUAL, UnsusalException);
-            };
-        };
+        assert!(record_times > 0, CONTRRACT_RECORD_TIMES_EXCEPTION);
+        // 校验动物没有被领养
+        assert!(check_animal_is_adopted(contracts, animal_id), ADOPTED_EXCEPTION);
+        // 校验用户没有领养状态异常
+        assert!(check_user_is_unusual(contracts, x_id), UNSUAL_ERROR);
         // 创建新的合同
         let uid = object::new(ctx);
         let id = object::uid_to_inner(&uid);
         // 空回访记录
         let records = empty<Record>();
         // 合约状态：未生效
-        let status = NotYetInForce;
+        let status = NOT_YET_IN_FORCE;
         let remark = b"".to_string();
         // 创建一个新的领养合约
-        let new_contract = create_new_contract(id, x_id, animal_id, amount, records, adopterAddress, owner, status,
-            remark, recordTimes, donateAmount);
+        let new_contract = create_new_contract(id, x_id, animal_id, amount, records, adopter_address, owner, status,
+            remark, record_times, donateAmount);
         // 放到合约记录中
-        if (animalContains) {
-            // 存在则直接添加
-            let animalContracts = table::borrow_mut( animal_contracts_table, animal_id);
-            push_back(animalContracts, id);
-        };
-        if (user_contains) {
-            // 存在则直接添加
-            let userContains = table::borrow_mut( user_contracts_table, x_id);
-            push_back(userContains, id);
-        };
-        // 合同信息加入到合同列表中
-        table::add( contracts_table, id, new_contract);
+        add_contract(contracts, new_contract, animal_id, x_id);
         // todo 通知前端生成
         event::emit(CreateAdoptContractEvent {
             xId: x_id,
@@ -209,25 +157,23 @@ module apply_for_adoption::apply_for_adoption {
 
     /// 用户-签署合同并缴纳押金
     /// 添加合同时明确捐赠部分费用
-    public fun sign_adopt_contract(adoptContractID: ID,
-                                   adoptContains: &mut AdoptContracts,
+    public fun sign_adopt_contract(contract_id: ID,
+                                   adopt_contains: &mut AdoptContracts,
                                    coin: &mut Coin<SUI>,
                                    system_state: &mut SuiSystemState,
                                    validator_address: address,
                                    ctx: &mut TxContext) {
-        // 获取合约集合
-        let contractsTable = get_adopt_contracts(adoptContains);
         // 校验合同是否存在
-        let contract = table::borrow_mut(contractsTable, adoptContractID);
+        let contract = get_adopt_contracts_by_id(adopt_contains, contract_id);
         let status = get_contract_status(contract);
         // 领养人地址
-        let adopterAddress = get_contrac_adopter_address(contract);
+        let adopter_address = get_contrac_adopter_address(contract);
         // 平台方地址
         let plat_form_address = get_contrac_platform_address(contract);
         // 校验合同是否是该用户可以签署的
-        assert!(adopterAddress == sui::tx_context::sender(ctx), ErrorAddress);
+        assert!(adopter_address == sui::tx_context::sender(ctx), ERROR_ADDRESS);
         // 校验合约应未被签署
-        assert!(status == NotYetInForce, ADOPTED_EXCEPTION);
+        assert!(status == NOT_YET_IN_FORCE, ADOPTED_EXCEPTION);
         // coin 中获取余额
         let coin_balance = coin::balance_mut(coin);
         // 合约押金
@@ -255,9 +201,9 @@ module apply_for_adoption::apply_for_adoption {
             ctx,
         );
         // 创建质押合同
-        let locked_stake = new_locked_stake( staked_sui, ctx);
+        let locked_stake = new_locked_stake(staked_sui, ctx);
         // 质押合同存储到领养合约中
-        set_contrac_locked_stake(contract, locked_stake,ctx);
+        set_contrac_locked_stake(contract, locked_stake, ctx);
         // 更新合同状态
         set_contract_status(contract, IN_FORCE);
         // todo 通知前端
@@ -266,74 +212,31 @@ module apply_for_adoption::apply_for_adoption {
     /// 平台-销毁未生效合约，非未生效合约会报错并中止
     public entry fun destory_adopt_contact(
         animal_id: String,
-        xId: String,
-        adoptContains: &mut AdoptContracts,
+        x_id: String,
+        adopt_contains: &mut AdoptContracts,
         ctx: &mut TxContext,
     ) {
-        // 获取动物合约集合
-        let animal_contracts_table = get_animal_contract_table(adoptContains);
-        // 获取用户合约集合
-        let userContractsTable = get_user_contract_table(adoptContains);
-        // 获取合约集合
-        let contractsTable = get_adopt_contracts(adoptContains);
-        // 从合约中找到对应的合约,并移除
-        // 从动物合约list 中移除该用户的合约
-        if (table::contains( userContractsTable, xId)) {
-            let userContracts = table::borrow_mut( userContractsTable, xId);
-            // 找到对应的合同
-            let (contract, index) =
-                get_adopt_contract(userContracts, contractsTable, animal_id);
-            let owner = sui::tx_context::sender(ctx);
-            // 获取合约平台地址
-            let platFormAddress = get_contrac_platform_address(&contract);
-            // 校验是否是创建者创建
-            assert!(platFormAddress == owner, ErrorAddress);
-            // 移除合约
-            let removeContractId = swap_remove(userContracts, index);
-            //  删除合约
-            let _ = table::remove(contractsTable, removeContractId);
-        };
-        // 从用户合约list 中移除该动物的合约
-        if (table::contains(animal_contracts_table, animal_id)) {
-            let adopt_contracts = table::borrow_mut(animal_contracts_table, animal_id);
-            // 找到对应的用户
-            let mut index = 0;
-            let mut contracts_length = length(adopt_contracts);
-            while (contracts_length > index) {
-                let contract_id = vector::borrow_mut(adopt_contracts, index);
-                let contract_id_entry = *contract_id;
-                let mut contract = table::borrow_mut(contractsTable, contract_id_entry);
-                let contract_x_id = getContractXId(contract);
-                if (contract_x_id == xId) {
-                    // 移除合约
-                    let _ = swap_remove(adopt_contracts, index);
-                    break
-                };
-                index = index + 1;
-            };
-        };
+        remove_contract(adopt_contains, animal_id, x_id, ctx);
         // todo 通知前端移除完成
     }
 
     ///平台-更新合约状态：放弃领养,并添加备注
     public entry fun abendon_adopt_contract(
-        animalId: String,
-        xId: String,
+        animal_id: String,
+        x_id: String,
         adoptContains: &mut AdoptContracts,
         remark: String,
         system_state: &mut SuiSystemState,
         ctx: &mut TxContext,
     ) {
-        // 获取合约集合
-        let contractsTable = get_adopt_contracts(adoptContains);
-        let contract = update_adopt_contract_status(animalId, xId, adoptContains, remark, GiveUp, ctx);
-        let adoptContractID = getContractID(&contract);
-        let adoptContract = table::borrow_mut(contractsTable, adoptContractID);
+        // 获取合约
+        let mut contract = get_adopt_contract(adoptContains, animal_id, x_id);
+        update_adopt_contract_status(contract, remark, GIVE_UP, ctx);
         /// 退养后押金处理
         /// 用户退养后，平台可解锁质押合同，按比例退还押金与利息
         /// 退还比例：（质押期间的利息+本金）/ （合约需要记录的次数+1）* 审核通过次数
-        let lock_stake = get_lock_stake(adoptContract);
-        unstake(system_state,lock_stake, adoptContract, false, ctx);
+        let lock_stake = get_lock_stake(contract);
+        unstake(system_state, lock_stake, contract, false, ctx);
     }
 
     /// 平台-更新合约状态：异常，并添加备注
@@ -346,34 +249,33 @@ module apply_for_adoption::apply_for_adoption {
         system_state: &mut SuiSystemState,
         ctx: &mut TxContext,
     ) {
-        let contract = update_adopt_contract_status(animal_id, x_id, adopt_contains, remark, UNSUAL, ctx);
+        // 获取合约
+        let mut contract = get_adopt_contract(adopt_contains, animal_id, x_id);
+        update_adopt_contract_status(contract, remark, UNSUAL, ctx);
         /// 异常状态押金处理：全数退还给平台
-        let lock_stake = get_lock_stake(&mut contract);
-        unstake(system_state,lock_stake, &mut contract, false, ctx, );
+        let lock_stake = get_lock_stake(contract);
+        unstake(system_state, lock_stake, contract, false, ctx, );
     }
 
 
     /// 用户-上传回访记录
     public fun upload_record(
-        adopt_contract_id: ID,
-        adopt_contains: &mut AdoptContracts,
+        contract_id: ID,
+        contains: &mut AdoptContracts,
         pic: String,
         clock: &Clock,
         ctx: &mut TxContext,
     ) {
-        // 获取合约集合
-        let contracts_table = get_adopt_contracts(adopt_contains);
-        // 校验合同是否存在
-        assert!(table::contains( contracts_table, adopt_contract_id), NOT_EXSIT_CONTRACT);
-        let contract = table::borrow_mut( contracts_table, adopt_contract_id);
+        // 获取合约,不存在会抛异常
+        let contract = get_adopt_contracts_by_id(contains, contract_id);
         // 合同状态
         let status = get_contract_status(contract);
         // 领养人地址
         let adopter_address = get_contrac_adopter_address(contract);
         // 校验合同是否是该用户可以签署的
-        assert!(adopter_address == sui::tx_context::sender(ctx), ErrorAddress);
+        assert!(adopter_address == sui::tx_context::sender(ctx), ERROR_ADDRESS);
         // 校验合同是否已经完成回访
-        assert!(status != Finish, FinshStatus);
+        assert!(status != FINISH, FINISH_STATUS_ERROR);
         // todo 检查能否获取当前年月
         let year_month = clock::timestamp_ms(clock) / 1000 / 60 / 60 / 24 / 30;
         // 获取合约上传记录
@@ -402,19 +304,15 @@ module apply_for_adoption::apply_for_adoption {
 
     // todo 平台-审核上传的回访记录
     public fun audit_record(contract_id: ID,
-                            adopt_contracts: &mut AdoptContracts,
+                            contracts: &mut AdoptContracts,
                             // 审核结果：true-通过；false-不通过
                             audit_result: bool,
                             // 审核备注
                             audit_remark: String,
                             system_state: &mut SuiSystemState,
                             ctx: &mut TxContext) {
-        // 获取合约集合
-        let contracts_table = get_adopt_contracts(adopt_contracts);
-        // 校验合同是否存在
-        assert!(table::contains(contracts_table, contract_id));
-        // 合约信息
-        let contract = table::borrow_mut(contracts_table, contract_id);
+        // 合约信息,不存在会直接抛异常
+        let contract = get_adopt_contracts_by_id(contracts, contract_id);
         // 获取合同状态
         let status = get_contract_status(contract);
         // 校验合约必须生效
@@ -422,7 +320,7 @@ module apply_for_adoption::apply_for_adoption {
         // 获取平台地址
         let platform_address = get_contrac_platform_address(contract);
         // 校验当前用户是否是平台
-        assert!(platform_address == sui::tx_context::sender(ctx), ErrorAddress);
+        assert!(platform_address == sui::tx_context::sender(ctx), ERROR_ADDRESS);
         // 获取审核通过次数
         let mut audit_pass_times = get_contrac_audit_pass_times(contract);
         // 审核通过增加审核通过次数
@@ -445,10 +343,10 @@ module apply_for_adoption::apply_for_adoption {
         // 校验合同审核通过次数是否等于需要记录次数
         if (audit_pass_times == record_times) {
             // 更新合同状态
-            set_contract_status(contract, Finish);
+            set_contract_status(contract, FINISH);
             let lock_stake = get_lock_stake(contract);
             // 退还押金与利息
-            unstake(system_state,lock_stake, contract, true, ctx);
+            unstake(system_state, lock_stake, contract, true, ctx);
         };
         // todo 通知用户审核结果
     }
@@ -456,34 +354,6 @@ module apply_for_adoption::apply_for_adoption {
     //==============================================================================================
     // Getter/Setter Functions
     //==============================================================================================
-    /// 在用户领养的合约种根据动物id找到对应的合同
-    fun get_adopt_contract(
-        contract_ids: &mut vector<ID>,
-        contracts: &mut Table<ID, AdoptContract>,
-        animal_id: String
-    ): (AdoptContract, u64) {
-        let mut index = 0;
-        let contracts_length = length(contract_ids);
-        let result_contract;
-        // 是否存在合约
-        let sign = false;
-        while (contracts_length > index) {
-            let contract_id = borrow_mut(contract_ids, index);
-            let copy_contract_id = *contract_id;
-            let contract = table::remove(contracts, copy_contract_id);
-            let contract_animal_id = get_contrac_animal_id(&contract);
-            if (contract_animal_id == animal_id) {
-                result_contract = contract;
-                sign = true;
-                break;
-            } else {
-                index = index + 1;
-                continue
-            }
-        };
-        assert!(sign, NOT_EXSIT_CONTRACT);
-        return (result_contract, index)
-    }
 
     /// 获取异常状态值
     public fun get_unusual_status(): u8 {
@@ -514,10 +384,8 @@ module apply_for_adoption::apply_for_adoption {
         is_all: bool,
         ctx: &mut TxContext,
     ) {
-        // 获取质押对象
-        let stake_sui = get_staked_sui(lock_stake);
         // Sui 系统模块提供的函数，用于解质押并结算奖励。会将质押对象（StakedSui）转换为 SUI 余额，包括本金和累积的奖励
-        let mut withdraw_balance = request_withdraw_stake_non_entry(system_state, stake_sui, ctx);
+        let mut withdraw_balance = get_withdraw_balance(system_state, lock_stake, ctx);
         let status = get_contract_status(contract);
         let plat_form_address = get_contrac_platform_address(contract);
         // 押金与利息
@@ -536,9 +404,9 @@ module apply_for_adoption::apply_for_adoption {
                 let auditPassTimes = get_contrac_audit_pass_times(contract);
                 let adopterAmount = withdraw_amount / recordTimes * auditPassTimes;
                 // 平台获取剩余的部分
-                let platFormAmount = withdraw_amount - adopterAmount;
-                let plafFormBalance = split(&mut withdraw_balance, platFormAmount);
-                store_to_target(plafFormBalance, plat_form_address, ctx);
+                let plat_form_amount = withdraw_amount - adopterAmount;
+                let plaf_form_balance = split(&mut withdraw_balance, plat_form_amount);
+                store_to_target(plaf_form_balance, plat_form_address, ctx);
                 // 领养人
                 let adopter_address = get_contrac_adopter_address(contract);
                 // 退还押金与利息给用户
@@ -565,31 +433,21 @@ module apply_for_adoption::apply_for_adoption {
     // Update Functions
     //==============================================================================================
     fun update_adopt_contract_status(
-        animalId: String,
-        xId: String,
-        adopt_contains: &mut AdoptContracts,
+        contract: &mut AdoptContract,
         remark: String,
         status: u8,
         ctx: &mut TxContext,
-    ): AdoptContract {
+    ) {
         // 获取用户合约
-        let userContractsTable = get_user_contract_table(adopt_contains);
-        // 校验合同是否存在
-        assert!(!table::contains( userContractsTable, xId));
-        let userContracts = table::borrow_mut(userContractsTable, xId);
-        let contracts = get_adopt_contracts(adopt_contains);
-        // 找到对应的合同
-        let (contract, _) = get_adopt_contract(userContracts,  contracts, animalId);
         let owner = sui::tx_context::sender(ctx);
         // 获取合约中平台地址
-        let platFormAddress = get_contrac_platform_address(&contract);
+        let plat_form_address = get_contrac_platform_address(contract);
         // 校验是否是创建者创建
-        assert!(platFormAddress == owner, ErrorAddress);
+        assert!(plat_form_address == owner, ERROR_ADDRESS);
         // 更新状态
-        set_contract_status(&contract, status);
-        set_contract_remark(&mut contract, remark);
+        set_contract_status(contract, status);
+        set_contract_remark(contract, remark);
         // todo 通知前端
-        contract
     }
 
     //==============================================================================================
@@ -602,15 +460,8 @@ module apply_for_adoption::apply_for_adoption {
 
 
     #[test_only]
-    public fun get_contract(contracts: &mut AdoptContracts, animalId: String, xId: String): AdoptContract {
-        // 获取用户合约
-        let user_contracts_table = get_user_contract_table(contracts);
-        assert!(table::contains( user_contracts_table, xId), NOT_EXSIT_CONTRACT);
-        let contractIds = table::borrow_mut( user_contracts_table, xId);
-        // 获取合约集合
-        let mut contractsTable = get_adopt_contracts(adoptContains);
-        let (contract, _) = get_adopt_contract(contractIds, contractsTable, animalId);
-        contract
+    public fun get_contract(contracts: &mut AdoptContracts, animal_id: String, x_id: String): &mut AdoptContract {
+        get_adopt_contract(contracts, animal_id, x_id)
     }
 }
 

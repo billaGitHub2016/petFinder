@@ -3,9 +3,11 @@ module apply_for_adoption::lock_stake {
     //==============================================================================================
     // Dependencies
     //==============================================================================================
+    use sui::balance::Balance;
     use sui::object::{Self, ID};
-    use sui::transfer;
-    use sui_system::staking_pool::{StakedSui, StakingPool};
+    use sui::sui::SUI;
+    use sui_system::staking_pool::{StakedSui};
+    use sui_system::sui_system::{Self, SuiSystemState, request_withdraw_stake_non_entry, request_add_stake_non_entry};
 
 
     //==============================================================================================
@@ -59,16 +61,16 @@ module apply_for_adoption::lock_stake {
         ls.id
     }
 
-    /// 获取LockedStake的质押SUI
-    public(package) fun get_staked_sui(ls: &LockedStake): StakedSui {
-        ls.staked_sui
-    }
-
     /// 获取LockedStake的平台地址
     public(package) fun get_platform_address(ls: &LockedStake): address {
         ls.platformAddress
     }
 
+    public(package) fun get_withdraw_balance(system_state: &mut SuiSystemState,
+                                             ls: &LockedStake,
+                                             ctx: &mut TxContext): Balance<SUI> {
+        request_withdraw_stake_non_entry(system_state, ls.staked_sui, ctx)
+    }
     //==============================================================================================
     // Update Functions
     //==============================================================================================
