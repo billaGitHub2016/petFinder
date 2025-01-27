@@ -45,11 +45,13 @@ module apply_for_adoption::lock_stake {
     public fun new_locked_stake(staked_sui: StakedSui, ctx: &mut TxContext): LockedStake {
         let uid = object::new(ctx);
         let id = object::uid_to_inner(&uid);
-        LockedStake {
+        let locked_stake = LockedStake {
             id,
             staked_sui,
             platformAddress: sui::tx_context::sender(ctx),
-        }
+        };
+        object::delete(uid);
+        locked_stake
     }
 
     //==============================================================================================
@@ -57,7 +59,7 @@ module apply_for_adoption::lock_stake {
     //==============================================================================================
 
     /// 获取LockedStake的ID
-    public(package) fun get_id(ls: &LockedStake): ID {
+    public(package) fun get_lock_stake_id(ls: &LockedStake): ID {
         ls.id
     }
 
@@ -67,28 +69,13 @@ module apply_for_adoption::lock_stake {
     }
 
     public(package) fun get_withdraw_balance(system_state: &mut SuiSystemState,
-                                             ls: &LockedStake,
+                                             ls: &mut LockedStake,
                                              ctx: &mut TxContext): Balance<SUI> {
         request_withdraw_stake_non_entry(system_state, ls.staked_sui, ctx)
     }
     //==============================================================================================
     // Update Functions
     //==============================================================================================
-    /// 通过解构删除
-    // public(package) fun destroy(old_ls: LockedStake, ctx: &mut TxContext): ID {
-    //     let LockedStake {
-    //         id: id,
-    //         staked_sui,
-    //         // 平台地址
-    //         platformAddress: _
-    //     } = old_ls;
-    //     // 销毁staked_sui
-    //     let StakedSui { id: staked_sui_uid, pool_id: _, stake_activation_epoch: _, principal } = staked_sui;
-    //     // 通过转移销毁
-    //     // transfer::public_transfer(principal, sui::tx_context::sender(ctx));
-    //     object::delete(staked_sui_uid);
-    //     id
-    // }
 
     //==============================================================================================
     // Helper Functions

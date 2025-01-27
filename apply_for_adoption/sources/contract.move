@@ -4,13 +4,14 @@ module apply_for_adoption::contract {
     // Dependencies
     //==============================================================================================
     use sui::object::{UID, Self, ID};
-    use std::string::String;
+    use std::string::{String, utf8};
     use std::vector::{Self, length};
-    use sui::event;
+    use sui::clock::{Clock, Self};
     use sui::table::{Self, Table, new};
     use sui::transfer;
     use std::option::{Option, Self, some, none, is_some, extract, borrow};
-    use apply_for_adoption::lock_stake::{Self, LockedStake};
+    use apply_for_adoption::lock_stake::{Self, LockedStake, get_lock_stake_id};
+    use sui::dynamic_field::{Self};
 
     //==============================================================================================
     // Constants
@@ -46,7 +47,7 @@ module apply_for_adoption::contract {
     /// 回访次数异常
     const CONTRRACT_RECORD_TIMES_EXCEPTION: u64 = 107;
     /// 缺少质押合同
-    const LackLockStakeException: u64 = 108;
+    const LACK_LOCK_STAKE_ERROR: u64 = 108;
     /// 合同已完成，不需要再上传
     const FinshStatus: u64 = 109;
     /// 合同已完成，不需要再上传
@@ -81,7 +82,7 @@ module apply_for_adoption::contract {
         // todo 规定传记录次数
         recordTimes: u64,
         // 质押合同
-        locked_stake: Option<LockedStake>,
+        locked_stake_id: Option<ID>,
         // 审核通过次数
         auditPassTimes: u64,
         // 捐赠给平台的币
@@ -142,11 +143,11 @@ module apply_for_adoption::contract {
     // Functions
     //==============================================================================================
     /// 创建新的记录
-    public(package) fun create_new_record(pic: String): Record {
+    public(package) fun create_new_record(pic: String, year_month: u64, clock: &Clock): Record {
         Record {
             pic,
-            date: clock::timestamp_ms(ctx),
-            yearMonth,
+            date: clock::timestamp_ms(clock),
+            yearMonth: year_month,
             auditResult: none(),
             auditRemark: b"".to_string(),
         }
@@ -177,7 +178,7 @@ module apply_for_adoption::contract {
             // 合约需要记录的次数
             recordTimes,
             // 质押合同
-            locked_stake: none(),
+            locked_stake_id: none(),
             // 审核通过次数
             auditPassTimes: 0,
             // 捐赠给平台的币
@@ -242,17 +243,19 @@ module apply_for_adoption::contract {
 
     /// 查询动物是否有被领养
     public(package) fun check_animal_is_adopted(contracts: &mut AdoptContracts, animal_id: String): bool {
+        let mut contracts_ref = contracts;
+        let mut animal_contracts_ref = &contracts.animal_contracts;
         let is_animal_contains_contract = table::contains(&contracts.animal_contracts, animal_id);
         if (is_animal_contains_contract) {
             // 注意：不存在会报错
-            let contract_ids = table::borrow(&contracts.animal_contracts, animal_id);
+            let contract_ids = table::borrow(animal_contracts_ref, animal_id);
             let contract_lenght = length(contract_ids);
             let mut index = 0;
             let mut is_adopted = false;
             while (contract_lenght > index) {
                 let contract_id = vector::borrow(contract_ids, index);
                 let contract_id_entry = *contract_id;
-                let mut contract = get_adopt_contracts_by_id(contracts, contract_id_entry);
+                let mut contract = get_adopt_contracts_by_contract_id(contracts_ref, contract_id_entry);
                 let status = get_contract_status(contract);
                 // 校验动物不存在生效或完成的合同
                 if (status != IN_FORCE || status != FINISH) {
@@ -270,16 +273,20 @@ module apply_for_adoption::contract {
 
     /// 查询该用户是否有异常领养记录
     public(package) fun check_user_is_unusual(contracts: &mut AdoptContracts, x_id: String): bool {
-        let is_user_contains_contract = table::contains(&contracts.user_contracts, x_id);
+        let mut contracts_ref = contracts;
+        let mut contracts_ref_ref = contracts_ref;
+        let mut contracts_ref_ref_ref = contracts_ref_ref;
+        let mut user_contracts_ref = &contracts_ref.user_contracts;
+        let is_user_contains_contract = table::contains(&contracts_ref_ref.user_contracts, x_id);
         if (is_user_contains_contract) {
-            let contract_ids = table::borrow(&contracts.user_contracts, x_id);
+            let contract_ids = table::borrow(user_contracts_ref, x_id);
             let contract_length = length(contract_ids);
             let mut index = 0;
             let mut is_unusual = false;
             while (contract_length > index) {
                 let contract_id = vector::borrow(contract_ids, index);
                 let contract_id_entry = *contract_id;
-                let mut contract = get_adopt_contracts_by_id(contracts, contract_id_entry);
+                let mut contract = get_adopt_contracts_by_contract_id(contracts_ref_ref_ref, contract_id_entry);
                 index = index + 1;
                 let status = get_contract_status(contract);
                 // 校验动物不存在异常状态
@@ -299,12 +306,6 @@ module apply_for_adoption::contract {
     //==============================================================================================
 
     // -----------------------------------------AdoptContract-----------------------------------------
-    /// 获取合约中的
-    public(package) fun get_lock_stake(contract: &mut AdoptContract): &mut LockedStake {
-        assert!(is_some(&contract.locked_stake), LackLockStakeException);
-        option::borrow_mut(&mut contract.locked_stake)
-    }
-
     /// 获取合约的动物id
     public fun get_contrac_animal_id(contract: &AdoptContract): String {
         contract.animalId
@@ -335,26 +336,6 @@ module apply_for_adoption::contract {
         contract.recordTimes
     }
 
-    /// 获取合约的质押合同
-    public(package) fun get_contrac_locked_stake(contract: &AdoptContract): & Option<LockedStake> {
-        &contract.locked_stake
-    }
-
-    /// 设置合约的质押合同
-    // public(package) fun setContracLockedStake(contract: &mut AdoptContract, new_ls: LockedStake) {
-    //     option::fill(&mut contract.ls, new_ls);
-    // }
-    public(package) fun set_contrac_locked_stake(contract: &mut AdoptContract,
-                                                 new_ls: LockedStake,
-                                                 ctx: &mut TxContext) {
-        // 获取合约的质押合同
-        // let old_ls_option = contract::getContracLockedStake(contract);
-        // let old_ls = option::extract(&mut old_ls_option);
-        // 销毁旧的质押合同
-        // let _ = lock_stake::destroy(old_ls,ctx);
-        // 再赋值新的
-        option::fill(&mut contract.locked_stake, new_ls);
-    }
 
     /// 获取合约的领养用户地址
     public(package) fun get_contrac_adopter_address(contract: &AdoptContract): address {
@@ -397,7 +378,7 @@ module apply_for_adoption::contract {
     }
 
     /// 获取合约的用户id
-    public(package) fun getContractXId(contract: &AdoptContract): String {
+    public(package) fun get_contract_x_id(contract: &AdoptContract): String {
         contract.xId
     }
 
@@ -406,10 +387,39 @@ module apply_for_adoption::contract {
         contract.id
     }
 
+    public(package) fun set_contrac_locked_stake(
+        contracts: &mut AdoptContracts,
+        locked_stake: LockedStake,
+        contract: &mut AdoptContract
+    ) {
+        let locked_stake_id = get_lock_stake_id(&locked_stake);
+        // 动态字段增加质押合约
+        dynamic_field::add<ID, LockedStake>(&mut contracts.id, locked_stake_id, locked_stake);
+        // 领养合同增加质押合同id
+        contract.locked_stake_id = some(locked_stake_id);
+    }
+
+    /// 获取合约的质押合同
+    public(package) fun get_contrac_locked_stake(
+        contracts: &mut AdoptContracts,
+        contract: &mut AdoptContract
+    ): &mut  LockedStake {
+        let locked_stake_id = option::borrow_mut(&mut contract.locked_stake_id);
+        dynamic_field::borrow_mut<ID, LockedStake>(&mut contracts.id, *locked_stake_id)
+    }
+
+    /// 获取合约的质押合同ID
+    public(package) fun get_contrac_locked_stake_id(contract: &mut AdoptContract): &mut ID {
+        option::borrow_mut(&mut contract.locked_stake_id)
+    }
+
     // ----------------------------------------AdoptContract-----------------------------------------
     // -----------------------------------------AdoptContracts-----------------------------------------
     /// 获取合约集合的合约
-    public(package) fun get_adopt_contracts_by_id(adopt_contracts: &mut AdoptContracts, id: ID): &mut AdoptContract {
+    public(package) fun get_adopt_contracts_by_contract_id(
+        adopt_contracts: &mut AdoptContracts,
+        id: ID
+    ): &mut AdoptContract {
         table::borrow_mut(&mut adopt_contracts.contracts, id)
     }
 
@@ -426,16 +436,15 @@ module apply_for_adoption::contract {
         let animal_contract_ids = table::borrow_mut(&mut contracts.animal_contracts, animal_id);
         let mut index = 0;
         let contracts_length = length(animal_contract_ids);
-        let result_contract;
         // 是否存在合约
-        let sign = false;
+        let mut sign = false;
+        let mut contract_id = vector::borrow_mut(animal_contract_ids, index);
         while (contracts_length > index) {
-            let contract_id = vector::borrow_mut(animal_contract_ids, index);
+            contract_id = vector::borrow_mut(animal_contract_ids, index);
             let copy_contract_id = *contract_id;
             let contract = table::borrow_mut(&mut contracts.contracts, copy_contract_id);
             let contract_x_id = contract.xId;
             if (x_id == contract_x_id) {
-                result_contract = contract;
                 sign = true;
                 break ;
             } else {
@@ -444,7 +453,7 @@ module apply_for_adoption::contract {
             }
         };
         assert!(sign, NOT_EXSIT_CONTRACT);
-        return result_contract
+        return table::borrow_mut(&mut contracts.contracts, *contract_id)
     }
 
     // -----------------------------------------AdoptContracts-----------------------------------------
@@ -478,21 +487,12 @@ module apply_for_adoption::contract {
     }
 
     /// 设置回访记录的审核结果
-    public
-    (package) fun
-    set_record_audit_result(record: &mut
-    Record,
-                            result:
-                            Option<bool>)
-    {
+    public(package) fun set_record_audit_result(record: &mut Record, result: Option<bool>) {
         record.auditResult = result
     }
 
     /// 获取回访记录的年月记录上传图片的日期
-    public
-    (package) fun
-    get_record_year_month(record: & Record):
-    u64 {
+    public(package) fun get_record_year_month(record: & Record): u64 {
         record.yearMonth
     }
     // -----------------------------------------Record-----------------------------------------

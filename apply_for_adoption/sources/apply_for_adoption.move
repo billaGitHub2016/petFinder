@@ -19,7 +19,6 @@ module apply_for_adoption::apply_for_adoption {
         get_contract_status,
         AdoptContracts,
         add_contract,
-        get_lock_stake,
         set_contract_status,
         get_contract_records,
         get_contract_record_times,
@@ -34,11 +33,11 @@ module apply_for_adoption::apply_for_adoption {
         set_contrac_audit_pass_times,
         set_record_audit_result,
         get_contract_donate_amount,
-        set_contrac_locked_stake,
-        create_new_contract, check_user_is_unusual,
-        Record, get_adopt_contracts_by_id, remove_contract, get_adopt_contract, check_animal_is_adopted
+        create_new_contract, check_user_is_unusual, set_contrac_locked_stake,
+        get_contrac_locked_stake, get_contrac_locked_stake_id,
+        Record, get_adopt_contracts_by_contract_id, remove_contract, get_adopt_contract, check_animal_is_adopted
     };
-    use apply_for_adoption::lock_stake::{new_locked_stake, get_withdraw_balance};
+    use apply_for_adoption::lock_stake::{new_locked_stake, get_withdraw_balance, get_lock_stake_id};
     use sui_system::sui_system::{Self, SuiSystemState, request_withdraw_stake_non_entry, request_add_stake_non_entry};
 
 
@@ -76,7 +75,7 @@ module apply_for_adoption::apply_for_adoption {
     /// 回访次数异常
     const CONTRRACT_RECORD_TIMES_EXCEPTION: u64 = 107;
     /// 缺少质押合同
-    const LackLockStakeException: u64 = 108;
+    const LACK_LOCK_STAKE_ERROR: u64 = 108;
     /// 合同已完成，不需要再上传
     const FINISH_STATUS_ERROR: u64 = 109;
     /// 合同已完成，不需要再上传
@@ -164,7 +163,7 @@ module apply_for_adoption::apply_for_adoption {
                                    validator_address: address,
                                    ctx: &mut TxContext) {
         // 校验合同是否存在
-        let contract = get_adopt_contracts_by_id(adopt_contains, contract_id);
+        let contract = get_adopt_contracts_by_contract_id(adopt_contains, contract_id);
         let status = get_contract_status(contract);
         // 领养人地址
         let adopter_address = get_contrac_adopter_address(contract);
@@ -189,9 +188,9 @@ module apply_for_adoption::apply_for_adoption {
         let sender = sui::tx_context::sender(ctx);
         // 捐赠 balance
         if (donate_amount > 0) {
-            let platFormBalance = split(&mut balance, donate_amount);
+            let plat_form_balance = split(&mut balance, donate_amount);
             // 存储进平台
-            store_to_target(platFormBalance, plat_form_address, ctx);
+            store_to_target(plat_form_balance, plat_form_address, ctx);
         };
         // 将剩余的balance 添加到 Sui 系统中,完成质押 stake()
         let staked_sui = request_add_stake_non_entry(
@@ -203,7 +202,7 @@ module apply_for_adoption::apply_for_adoption {
         // 创建质押合同
         let locked_stake = new_locked_stake(staked_sui, ctx);
         // 质押合同存储到领养合约中
-        set_contrac_locked_stake(contract, locked_stake, ctx);
+        set_contrac_locked_stake(adopt_contains, locked_stake, contract);
         // 更新合同状态
         set_contract_status(contract, IN_FORCE);
         // todo 通知前端
@@ -224,19 +223,21 @@ module apply_for_adoption::apply_for_adoption {
     public entry fun abendon_adopt_contract(
         animal_id: String,
         x_id: String,
-        adoptContains: &mut AdoptContracts,
+        contracts: &mut AdoptContracts,
         remark: String,
         system_state: &mut SuiSystemState,
         ctx: &mut TxContext,
     ) {
         // 获取合约
-        let mut contract = get_adopt_contract(adoptContains, animal_id, x_id);
+        let mut contract = get_adopt_contract(contracts, animal_id, x_id);
         update_adopt_contract_status(contract, remark, GIVE_UP, ctx);
         /// 退养后押金处理
         /// 用户退养后，平台可解锁质押合同，按比例退还押金与利息
         /// 退还比例：（质押期间的利息+本金）/ （合约需要记录的次数+1）* 审核通过次数
-        let lock_stake = get_lock_stake(contract);
-        unstake(system_state, lock_stake, contract, false, ctx);
+        let mut contract_ref = contract;
+        let lock_stake = get_contrac_locked_stake(contracts, contract);
+
+        unstake(system_state, lock_stake, contract_ref, false, ctx);
     }
 
     /// 平台-更新合约状态：异常，并添加备注
@@ -251,10 +252,12 @@ module apply_for_adoption::apply_for_adoption {
     ) {
         // 获取合约
         let mut contract = get_adopt_contract(adopt_contains, animal_id, x_id);
+        let mut contract_ref = contract;
         update_adopt_contract_status(contract, remark, UNSUAL, ctx);
+        let contract_ref_ref = contract_ref;
         /// 异常状态押金处理：全数退还给平台
-        let lock_stake = get_lock_stake(contract);
-        unstake(system_state, lock_stake, contract, false, ctx, );
+        let lock_stake = get_contrac_locked_stake(adopt_contains, contract_ref);
+        unstake(system_state, lock_stake, contract_ref_ref, false, ctx, );
     }
 
 
@@ -267,7 +270,7 @@ module apply_for_adoption::apply_for_adoption {
         ctx: &mut TxContext,
     ) {
         // 获取合约,不存在会抛异常
-        let contract = get_adopt_contracts_by_id(contains, contract_id);
+        let contract = get_adopt_contracts_by_contract_id(contains, contract_id);
         // 合同状态
         let status = get_contract_status(contract);
         // 领养人地址
@@ -295,7 +298,7 @@ module apply_for_adoption::apply_for_adoption {
             // 校验是否有重复上传
             assert!(year_month != last_year_month, REPEAT_UPLOAD_EXCEPTION);
         };
-        let record = create_new_record(pic);
+        let record = create_new_record(pic, year_month, clock);
         let records = get_contract_records(contract);
         // 上传回访记录
         push_back(records, record);
@@ -312,7 +315,7 @@ module apply_for_adoption::apply_for_adoption {
                             system_state: &mut SuiSystemState,
                             ctx: &mut TxContext) {
         // 合约信息,不存在会直接抛异常
-        let contract = get_adopt_contracts_by_id(contracts, contract_id);
+        let contract = get_adopt_contracts_by_contract_id(contracts, contract_id);
         // 获取合同状态
         let status = get_contract_status(contract);
         // 校验合约必须生效
@@ -344,7 +347,7 @@ module apply_for_adoption::apply_for_adoption {
         if (audit_pass_times == record_times) {
             // 更新合同状态
             set_contract_status(contract, FINISH);
-            let lock_stake = get_lock_stake(contract);
+            let mut lock_stake = get_contrac_locked_stake(contracts, contract);
             // 退还押金与利息
             unstake(system_state, lock_stake, contract, true, ctx);
         };
@@ -362,7 +365,7 @@ module apply_for_adoption::apply_for_adoption {
 
     /// 获取缺失质押合同异常状态
     public fun get_lack_lock_stake_exception_status(): u64 {
-        LackLockStakeException
+        LACK_LOCK_STAKE_ERROR
     }
 
     /// 获取异常状态值
@@ -395,7 +398,7 @@ module apply_for_adoption::apply_for_adoption {
         // 根据是否全部退还的条件，进行退还押金
         if (is_all) {
             // 退还押金与利息给用户
-            store_to_target(withdraw_balance, user_address, ctx);
+            store_to_target(withdraw_balance, user_address, ctx)
         } else {
             // 退养状态
             if (get_contract_status(contract) == get_unusual_status()) {
@@ -410,14 +413,13 @@ module apply_for_adoption::apply_for_adoption {
                 // 领养人
                 let adopter_address = get_contrac_adopter_address(contract);
                 // 退还押金与利息给用户
-                store_to_target(withdraw_balance, adopter_address, ctx)
-                // 异常状态
-            } else if (status == get_unusual_status()) {
-                // 全数退还给平台
-                store_to_target(withdraw_balance, plat_form_address, ctx)
-            } else {
-                assert!(false, UNKNOE_CONTRACT_STATUS_EXCEPTION);
-            }
+                return store_to_target(withdraw_balance, adopter_address, ctx)
+                // 异常状态或其他状态全数退还给平台
+            };
+            // else if (status == get_unusual_status()) {
+            // 全数退还给平台
+            store_to_target(withdraw_balance, plat_form_address, ctx)
+            // }
         }
         // 前端通知用户
     }
