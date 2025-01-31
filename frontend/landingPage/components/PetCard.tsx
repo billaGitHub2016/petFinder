@@ -22,7 +22,7 @@ export default function PetCard({ name, desc, imageUrl, city }: PetCardProps) {
               <span className="text-xs px-2 py-1 bg-orange-100 text-[hsl(24.6,95%,53.1%)] rounded-full">{city}</span>
             )}
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-3">{desc}</p>
+          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{desc}</p>
         </div>
       </CardContent>
     </Card>

@@ -12,6 +12,13 @@ import "@/styles/loading.css";
 import { Analytics } from "@vercel/analytics/react";
 import { Viewport } from "next";
 import { Inter as FontSans } from "next/font/google";
+// import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
+import { createClient } from "@/utils/supabase/server";
+// import { cookies } from "next/headers";
+// import { Database } from "@/types/supabase";
+
+
+export const dynamic = "force-dynamic";
 
 export const fontSans = FontSans({
   subsets: ["latin"],
@@ -32,7 +39,6 @@ export const metadata = {
 export const viewport: Viewport = {
   themeColor: siteConfig.themeColors,
 };
-
 export default async function RootLayout({
   children,
   params: { lang },
@@ -40,6 +46,17 @@ export default async function RootLayout({
   children: React.ReactNode;
   params: { lang: string | undefined };
 }) {
+
+   // 创建一个Supabase客户端
+  //  const supabase = createServerComponentClient<Database>({ cookies });
+  const supabase = await createClient();
+
+   // 获取当前用户信息
+   const {
+     data: { user },
+   } = await supabase.auth.getUser();
+  //  console.log('!!!!!!!!!user = ', user);
+
   return (
     <html lang={lang || defaultLocale} suppressHydrationWarning>
       <head />
@@ -54,7 +71,7 @@ export default async function RootLayout({
           defaultTheme={siteConfig.nextThemeColor}
           enableSystem
         >
-          <Header />
+          <Header user={user}/>
           <main className="flex flex-col items-center py-6">{children}</main>
           <Footer />
           <Analytics />

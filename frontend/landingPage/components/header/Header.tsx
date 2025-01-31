@@ -9,15 +9,17 @@ import { useParams } from "next/navigation";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { ThemedButton } from "../ThemedButton";
+import LoginButton from "./LoginButton";
 
 const links = [
-  { label: "Features", href: "#Features" },
-  { label: "Pricing", href: "#Pricing" },
-  { label: "Testimonials", href: "#Testimonials" },
+  { label: "首页", href: "#Features" },
+  { label: "宠物领养", href: "#Pricing" },
+  // { label: "Testimonials", href: "#Testimonials" },
   { label: "FAQ", href: "#FAQ" },
 ];
 
-const Header = () => {
+const Header = (user: any) => {
+  // console.log('user header = ', user);
   const params = useParams();
   const lang = params.lang;
 
@@ -67,6 +69,7 @@ const Header = () => {
           <HeaderLinks />
           <ThemedButton />
           <LangSwitcher />
+          <LoginButton user={user}></LoginButton>
         </div>
 
         {/* Mobile menu button */}

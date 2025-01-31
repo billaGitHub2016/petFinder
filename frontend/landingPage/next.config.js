@@ -13,11 +13,15 @@ const nextConfig = {
     //     search: '',
     //   },
     // ],
-    domains: ["image.billa4161.xyz"],
+    // domains: ["image.billa4161.xyz", "pbs.twimg.com"],
     remotePatterns: [
       {
         protocol: "https",
         hostname: "image.billa4161.xyz",
+      },
+      {
+        protocol: "https",
+        hostname: "pbs.twimg.com",
       },
     ],
   },
