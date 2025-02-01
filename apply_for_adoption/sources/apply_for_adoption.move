@@ -58,9 +58,11 @@ module apply_for_adoption::apply_for_adoption {
     /// 余额不足
     const E_SUFFICIENT_BALANCE: u64 = 110;
     /// 价格大于1SUI
-    const E_MIN_STAKING_THRESHOLD: u64 = 110;
+    const E_MIN_STAKING_THRESHOLD: u64 = 111;
     /// 审批结果为空
-    const EMPTY_RESULT_ERROR: u64 = 110;
+    const EMPTY_RESULT_ERROR: u64 = 112;
+    /// 销毁的合约不符合规范
+    const DESTORY_ERROR_CONTRACT: u64 = 113;
 
     //==============================================================================================
     // Structs
@@ -206,9 +208,9 @@ module apply_for_adoption::apply_for_adoption {
         // 校验回访次数应该 >0
         assert!(record_times > 0, CONTRRACT_RECORD_TIMES_EXCEPTION);
         // 校验动物没有被领养
-        assert!(!check_animal_is_adopted(contracts, animal_id), ADOPTED_EXCEPTION);
+        assert!(check_animal_is_adopted(contracts, animal_id) == false, ADOPTED_EXCEPTION);
         // 校验用户没有领养状态异常
-        assert!(!check_user_is_unusual(contracts, x_id), UNSUAL_ERROR);
+        assert!(check_user_is_unusual(contracts, x_id) == false, UNSUAL_ERROR);
         // 创建新的合同
         let uid = object::new(ctx);
         let id = object::uid_to_inner(&uid);
@@ -329,6 +331,8 @@ module apply_for_adoption::apply_for_adoption {
     ) {
         // 找到对应的合同
         let contract = get_adopt_contract(adopt_contracts, animal_id, x_id);
+        // 生效中/已完成的合约不能删除
+        assert!(contract.status != IN_FORCE && contract.status != FINISH, DESTORY_ERROR_CONTRACT);
         let contract_id = contract.id;
         let owner = sui::tx_context::sender(ctx);
         // 获取合约平台地址
@@ -338,12 +342,12 @@ module apply_for_adoption::apply_for_adoption {
         // 移除用户合约
         let user_contract_ids = table::borrow_mut(&mut adopt_contracts.user_contracts, x_id);
         let (user_contains, user_index) = vector::index_of(user_contract_ids, &contract_id);
-        assert!(user_contains, NOT_EXSIT_CONTRACT);
+        assert!(user_contains == true, NOT_EXSIT_CONTRACT);
         let remove_contract_id = vector::swap_remove(user_contract_ids, user_index);
         // 移除动物合约
         let animal_contract_ids = table::borrow_mut(&mut adopt_contracts.animal_contracts, animal_id);
-        let (animal_contains, animal_index) = vector::index_of(user_contract_ids, &contract_id);
-        assert!(animal_contains, NOT_EXSIT_CONTRACT);
+        let (animal_contains, animal_index) = vector::index_of(animal_contract_ids, &contract_id);
+        assert!(animal_contains == true, NOT_EXSIT_CONTRACT);
         let _ = vector::swap_remove(animal_contract_ids, animal_index);
         //  删除合约
         let _ = table::remove(&mut adopt_contracts.contracts, remove_contract_id);
@@ -426,7 +430,7 @@ module apply_for_adoption::apply_for_adoption {
             // 最后一次上传记录的结果
             let last_audit_result_option = last_record.auditResult;
             // 校验最后一次记录平台需要审核，最后一次记录没有审核，无法上传新的记录
-            assert!(is_some(&last_audit_result_option), AUDIT_EXCEPTION);
+            assert!(is_some(&last_audit_result_option) == true, AUDIT_EXCEPTION);
             // 获取最后一次上传记录的年月
             let last_audit_result = option::borrow<bool>(&last_audit_result_option);
             // 获取最后一次上传记录审批结果
@@ -513,12 +517,14 @@ module apply_for_adoption::apply_for_adoption {
         x_id: String
     ): &mut AdoptContract {
         // 校验合同是否存在
-        assert!(table::contains(&contracts.animal_contracts, animal_id), NOT_EXSIT_CONTRACT);
-        assert!(table::contains(&contracts.user_contracts, x_id), NOT_EXSIT_CONTRACT);
+        assert!(table::contains(&contracts.animal_contracts, animal_id) == true, NOT_EXSIT_CONTRACT);
+        assert!(table::contains(&contracts.user_contracts, x_id) == true, NOT_EXSIT_CONTRACT);
         // 从动物id中找到合约
         let animal_contract_ids = table::borrow_mut(&mut contracts.animal_contracts, animal_id);
         let mut index = 0;
         let contracts_length = length(animal_contract_ids);
+        // 合约length >0
+        assert!(contracts_length > 0, NOT_EXSIT_CONTRACT);
         // 是否存在合约
         let mut sign = false;
         let mut contract_id = vector::borrow_mut(animal_contract_ids, index);
@@ -535,7 +541,7 @@ module apply_for_adoption::apply_for_adoption {
                 continue
             }
         };
-        assert!(sign, NOT_EXSIT_CONTRACT);
+        assert!(sign == true, NOT_EXSIT_CONTRACT);
         return table::borrow_mut(&mut contracts.contracts, *contract_id)
     }
 
@@ -546,8 +552,8 @@ module apply_for_adoption::apply_for_adoption {
         x_id: String
     ): &AdoptContract {
         // 校验合同是否存在
-        assert!(table::contains(&contracts.animal_contracts, animal_id), NOT_EXSIT_CONTRACT);
-        assert!(table::contains(&contracts.user_contracts, x_id), NOT_EXSIT_CONTRACT);
+        assert!(table::contains(&contracts.animal_contracts, animal_id) == true, NOT_EXSIT_CONTRACT);
+        assert!(table::contains(&contracts.user_contracts, x_id) == true, NOT_EXSIT_CONTRACT);
         // 从动物id中找到合约
         let animal_contract_ids = table::borrow(&contracts.animal_contracts, animal_id);
         let mut index = 0;
@@ -568,7 +574,7 @@ module apply_for_adoption::apply_for_adoption {
                 continue
             }
         };
-        assert!(sign, NOT_EXSIT_CONTRACT);
+        assert!(sign == true, NOT_EXSIT_CONTRACT);
         return table::borrow(&contracts.contracts, *contract_id)
     }
 
@@ -690,8 +696,8 @@ module apply_for_adoption::apply_for_adoption {
                 let contract_id = vector::borrow(contract_ids, index);
                 let contract_id_entry = *contract_id;
                 let contract = table::borrow(&contracts.contracts, contract_id_entry);
-                // 校验动物不存在生效或完成的合同
-                if (contract.status != IN_FORCE || contract.status != FINISH) {
+                // 校验动物不存在未生效、生效中、已完成的合同
+                if (contract.status != NOT_YET_IN_FORCE && contract.status != IN_FORCE && contract.status != FINISH) {
                     index = index + 1;
                 } else {
                     is_adopted = true;
