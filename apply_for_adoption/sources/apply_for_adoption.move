@@ -5,9 +5,9 @@ module apply_for_adoption::apply_for_adoption {
     //==============================================================================================
     use sui::object::{ Self, ID};
     use std::string::String;
-    use std::vector::{Self, length, empty, push_back};
+    use std::vector::{Self, length, empty, push_back, is_empty};
     use sui::event;
-    use std::option::{Option, some, none, is_some, extract, borrow};
+    use std::option::{ some, none, is_some, extract, borrow};
     use sui::balance::{Balance, value, split};
     use sui::coin::{Coin, Self};
     use sui::sui::SUI;
@@ -57,6 +57,10 @@ module apply_for_adoption::apply_for_adoption {
     const FINISH_STATUS_ERROR: u64 = 109;
     /// 余额不足
     const E_SUFFICIENT_BALANCE: u64 = 110;
+    /// 价格大于1SUI
+    const E_MIN_STAKING_THRESHOLD: u64 = 110;
+    /// 审批结果为空
+    const EMPTY_RESULT_ERROR: u64 = 110;
 
     //==============================================================================================
     // Structs
@@ -213,6 +217,8 @@ module apply_for_adoption::apply_for_adoption {
         // 合约状态：未生效
         let status = NOT_YET_IN_FORCE;
         let remark = b"".to_string();
+        // todo 质押押金必须大于 1_000_000_000 (1SUI)
+        assert!(amount >= 1_000_000_000, E_MIN_STAKING_THRESHOLD);
         // 创建一个新的领养合约
         let new_contract =
             AdoptContract {
@@ -413,18 +419,21 @@ module apply_for_adoption::apply_for_adoption {
         let year_month = clock::timestamp_ms(clock) / 1000 / 60 / 60 / 24 / 30;
         // 获取合约上传记录
         let record_length = length(&contract.records);
-        // 获取最后一次上传记录
-        let last_record = vector::borrow(&contract.records, record_length - 1);
-        // 最后一次上传记录的结果
-        let last_audit_result_option = last_record.auditResult;
-        // 校验最后一次记录平台需要审核，最后一次记录没有审核，无法上传新的记录
-        assert!(is_some(&last_audit_result_option), AUDIT_EXCEPTION);
-        // 获取最后一次上传记录的年月
-        let last_audit_result = option::borrow<bool>(&last_audit_result_option);
-        // 获取最后一次上传记录审批结果
-        if (is_some(&last_audit_result_option) && last_audit_result == true) {
-            // 校验是否有重复上传
-            assert!(year_month != last_record.yearMonth, REPEAT_UPLOAD_EXCEPTION);
+        // 首次上传不需要做校验
+        if (record_length > 0) {
+            // 获取最后一次上传记录
+            let last_record = vector::borrow(&contract.records, (record_length - 1));
+            // 最后一次上传记录的结果
+            let last_audit_result_option = last_record.auditResult;
+            // 校验最后一次记录平台需要审核，最后一次记录没有审核，无法上传新的记录
+            assert!(is_some(&last_audit_result_option), AUDIT_EXCEPTION);
+            // 获取最后一次上传记录的年月
+            let last_audit_result = option::borrow<bool>(&last_audit_result_option);
+            // 获取最后一次上传记录审批结果
+            if (is_some(&last_audit_result_option) && last_audit_result == true) {
+                // 校验是否有重复上传
+                assert!(year_month != last_record.yearMonth, REPEAT_UPLOAD_EXCEPTION);
+            };
         };
         let record = Record {
             pic,
@@ -499,7 +508,7 @@ module apply_for_adoption::apply_for_adoption {
 
     /// 在用户领养的合约中找到合同
     public(package) fun get_adopt_contract(
-        contracts: & mut AdoptContracts,
+        contracts: &mut AdoptContracts,
         animal_id: String,
         x_id: String
     ): &mut AdoptContract {
@@ -530,12 +539,45 @@ module apply_for_adoption::apply_for_adoption {
         return table::borrow_mut(&mut contracts.contracts, *contract_id)
     }
 
+    /// 在用户领养的合约中找到不可变合同
+    public(package) fun get_unchange_adopt_contract(
+        contracts: &AdoptContracts,
+        animal_id: String,
+        x_id: String
+    ): &AdoptContract {
+        // 校验合同是否存在
+        assert!(table::contains(&contracts.animal_contracts, animal_id), NOT_EXSIT_CONTRACT);
+        assert!(table::contains(&contracts.user_contracts, x_id), NOT_EXSIT_CONTRACT);
+        // 从动物id中找到合约
+        let animal_contract_ids = table::borrow(&contracts.animal_contracts, animal_id);
+        let mut index = 0;
+        let contracts_length = length(animal_contract_ids);
+        // 是否存在合约
+        let mut sign = false;
+        let mut contract_id = vector::borrow(animal_contract_ids, index);
+        while (contracts_length > index) {
+            contract_id = vector::borrow(animal_contract_ids, index);
+            let copy_contract_id = *contract_id;
+            let contract = table::borrow(&contracts.contracts, copy_contract_id);
+            let contract_x_id = contract.xId;
+            if (x_id == contract_x_id) {
+                sign = true;
+                break
+            } else {
+                index = index + 1;
+                continue
+            }
+        };
+        assert!(sign, NOT_EXSIT_CONTRACT);
+        return table::borrow(&contracts.contracts, *contract_id)
+    }
+
     public(package) fun get_contrac_id(contract: &AdoptContract): ID {
         contract.id
     }
 
-    public(package) fun get_contract_records(contract: &mut AdoptContract): &mut vector<Record> {
-        &mut contract.records
+    public(package) fun get_contract_records(contract: &AdoptContract): vector<Record> {
+        contract.records
     }
 
     public(package) fun get_contract_status(contract: &AdoptContract): u8 {
@@ -544,6 +586,14 @@ module apply_for_adoption::apply_for_adoption {
 
     public(package) fun get_x_id(contract: &AdoptContract): String {
         contract.xId
+    }
+
+    public(package) fun get_audit_pass_times(contract: &AdoptContract): u64 {
+        contract.auditPassTimes
+    }
+
+    public(package) fun get_record_status(record: &Record): &bool {
+        borrow(&record.auditResult)
     }
     //==============================================================================================
     // Functions
@@ -691,6 +741,11 @@ module apply_for_adoption::apply_for_adoption {
     #[test_only]
     public fun get_contract(contracts: &mut AdoptContracts, animal_id: String, x_id: String): &mut AdoptContract {
         get_adopt_contract(contracts, animal_id, x_id)
+    }
+
+    #[test_only]
+    public fun get_unchange_contract(contracts: &AdoptContracts, animal_id: String, x_id: String): &AdoptContract {
+        get_unchange_adopt_contract(contracts, animal_id, x_id)
     }
 }
 
