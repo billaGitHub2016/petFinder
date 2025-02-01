@@ -41,6 +41,7 @@ module apply_for_adoption::apply_for_adoption_tests {
     use std::vector::{Self, length, empty, push_back};
     use sui_system::sui_system::{Self, SuiSystemState, request_add_stake_non_entry, request_withdraw_stake_non_entry};
     use sui_system::governance_test_utils::{advance_epoch, set_up_sui_system_state};
+    use sui::test_utils::{Self};
 
     //==============================================================================================
     // Error codes
@@ -75,7 +76,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // 从平台校验是否能获取到新增的合同
         let contract = get_contract(&mut contracts, get_test_animal_id(), get_test_x_id());
         assert!(get_x_id(contract) == get_test_x_id(), 100);
-        // todo 测试捐赠到平台
         test_scenario::return_shared(contracts);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
@@ -1369,10 +1369,9 @@ module apply_for_adoption::apply_for_adoption_tests {
         test_scenario::end(platfrom_scenario);
     }
 
-    // todo 平台-销毁完成的合同
     #[test]
     #[expected_failure(abort_code = DESTORY_ERROR_CONTRACT)]
-    /// 用户-测试合约完成后，用户二次上传
+    /// 平台-销毁完成的合同
     fun test_destory_finish_contract() {
         // 平台-创建合同
         let mut scenario_val = test_scenario::begin(@0x0);

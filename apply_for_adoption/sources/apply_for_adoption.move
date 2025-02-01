@@ -3,8 +3,9 @@ module apply_for_adoption::apply_for_adoption {
     //==============================================================================================
     // Dependencies
     //==============================================================================================
+    use std::debug;
     use sui::object::{ Self, ID};
-    use std::string::String;
+    use std::string::{Self, String};
     use std::vector::{Self, length, empty, push_back, is_empty};
     use sui::event;
     use std::option::{ some, none, is_some, extract, borrow};
@@ -16,6 +17,9 @@ module apply_for_adoption::apply_for_adoption {
     use sui_system::sui_system::{ SuiSystemState, request_withdraw_stake_non_entry, request_add_stake_non_entry};
     use sui_system::staking_pool::{StakedSui};
     use sui::dynamic_field::{Self};
+    use sui::transfer;
+    use std::debug::print;
+    use sui::balance;
 
 
     //==============================================================================================
@@ -63,6 +67,9 @@ module apply_for_adoption::apply_for_adoption {
     const EMPTY_RESULT_ERROR: u64 = 112;
     /// 销毁的合约不符合规范
     const DESTORY_ERROR_CONTRACT: u64 = 113;
+    /// 合约押金金额异常
+    const AMOUNT_ERROR: u64 = 114;
+
 
     //==============================================================================================
     // Structs
@@ -219,7 +226,7 @@ module apply_for_adoption::apply_for_adoption {
         // 合约状态：未生效
         let status = NOT_YET_IN_FORCE;
         let remark = b"".to_string();
-        // todo 质押押金必须大于 1_000_000_000 (1SUI)
+        // 质押押金必须大于 1_000_000_000 (1SUI)
         assert!(amount >= 1_000_000_000, E_MIN_STAKING_THRESHOLD);
         // 创建一个新的领养合约
         let new_contract =
@@ -292,9 +299,11 @@ module apply_for_adoption::apply_for_adoption {
             // 存储进平台
             let coin = coin::from_balance(plat_form_balance, ctx);
             transfer::public_transfer(coin, contract.platFormAddress);
-            // store_to_target(plat_form_balance, contract.platFormAddress, ctx);
         };
-        // 将剩余的balance 添加到 Sui 系统中,完成质押 stake()
+        debug::print(&contract_balance);
+        // 校验合约押金与当前余额相同
+        assert!(balance::value(&contract_balance) == contract.amount, AMOUNT_ERROR);
+        // 将剩余的balance(押金) 添加到 Sui 系统中,完成质押 stake()
         let staked_sui = request_add_stake_non_entry(
             system_state,
             coin::from_balance(contract_balance, ctx),
@@ -622,9 +631,11 @@ module apply_for_adoption::apply_for_adoption {
         let LockedStake { id: _, staked_sui, platformAddress: _ } = locked_stake;
         let staked_sui_entry = extract(staked_sui);
         let mut withdraw_balance = request_withdraw_stake_non_entry(system_state, staked_sui_entry, ctx);
-
         // 押金与利息
         let withdraw_amount = value(&withdraw_balance);
+        // 退还的利息 >= 合约押金
+        assert!(withdraw_amount >= contract.amount, AMOUNT_ERROR);
+        debug::print(&withdraw_amount);
         // 根据是否全部退还的条件，进行退还押金
         if (is_all) {
             // 退还押金与利息给用户
