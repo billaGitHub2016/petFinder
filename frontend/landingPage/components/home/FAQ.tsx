@@ -20,6 +20,7 @@ const FAQ = ({
   langName: string;
 }) => {
   const FAQS = ALL_FAQS[`FAQS_${langName.toUpperCase()}`];
+  console.log('faqs = ' + FAQS);
 
   return (
     <section
@@ -28,7 +29,7 @@ const FAQ = ({
     >
       <div className="flex flex-col text-center gap-4">
         <h2 className="text-center text-white">
-          <RoughNotation type="highlight" show={true} color="#2563EB">
+          <RoughNotation type="highlight" show={true} color="#F97316">
             {locale.title}
           </RoughNotation>
         </h2>

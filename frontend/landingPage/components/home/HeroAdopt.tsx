@@ -23,7 +23,7 @@ const Hero = ({ locale, CTALocale }: { locale: any; CTALocale: any }) => {
           style={{
             width: "500px",
             height: "260px",
-            backgroundImage: `url(https://image.billa4161.xyz/petpet-hero-bg.png)`,
+            backgroundImage: `url(https://pub-d4862abababb476e8724da7f0b64c5c1.r2.dev/petpet-hero-bg.png)`,
             backgroundSize: "cover",
             backgroundPosition: "right",
             backgroundRepeat: "no-repeat",

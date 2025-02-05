@@ -1,12 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { RocketIcon } from "lucide-react";
+import { Workflow } from "lucide-react";
 import Link from "next/link";
 
-const CTAButton = ({ locale }: { locale: any }) => {
+const CTAButton = ({ locale, lang }: { locale: any, lang: string }) => {
   return (
     <Link
-      href="https://github.com/weijunext/landing-page-boilerplate"
-      target="_blank"
+      href={`/${lang === "en" ? "" : lang}#steps`}
       rel="noopener noreferrer nofollow"
     >
       <Button
@@ -14,7 +13,7 @@ const CTAButton = ({ locale }: { locale: any }) => {
         className="flex items-center gap-2 text-white"
         aria-label="Get Boilerplate"
       >
-        <RocketIcon />
+        <Workflow />
         {locale.title}
       </Button>
     </Link>

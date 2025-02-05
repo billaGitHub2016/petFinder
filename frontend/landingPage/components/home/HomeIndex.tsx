@@ -9,6 +9,9 @@ import ScrollingLogos from "@/components/home/ScrollingAnimals";
 import SocialProof from "@/components/home/SocialProof";
 import Testimonials from "@/components/home/Testimonials";
 import { defaultLocale, getDictionary } from "@/lib/i18n";
+import Steper from '@/components/home/Stepper'
+
+export const dynamic = "force-dynamic";
 
 export default async function HomeIndex({ lang }: { lang: string }) {
   const langName = lang || defaultLocale;
@@ -26,19 +29,20 @@ export default async function HomeIndex({ lang }: { lang: string }) {
       {/* <Showcase id="Showcase" locale={dict.Showcase} /> */}
 
       {/* USP (Unique Selling Proposition) */}
-      <Feature id="Features" locale={dict.Feature} langName={langName} />
+      {/* <Feature id="Features" locale={dict.Feature} langName={langName} /> */}
+      <Steper id="steps" locale={dict.Steps} langName={langName}></Steper>
 
       {/* Pricing */}
-      <Pricing id="Pricing" locale={dict.Pricing} langName={langName} />
+      {/* <Pricing id="Pricing" locale={dict.Pricing} langName={langName} /> */}
 
       {/* Testimonials */}
-      <Testimonials id="Testimonials" locale={dict.Testimonials} />
+      {/* <Testimonials id="Testimonials" locale={dict.Testimonials} /> */}
 
       {/* FAQ (Frequently Asked Questions) */}
       <FAQ id="FAQ" locale={dict.FAQ} langName={langName} />
 
       {/* CTA (Call to Action) */}
-      <CTA locale={dict.CTA} CTALocale={dict.CTAButton} />
+      {/* <CTA locale={dict.CTA} CTALocale={dict.CTAButton} /> */}
     </>
   );
 }

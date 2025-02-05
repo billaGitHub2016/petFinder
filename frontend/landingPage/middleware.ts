@@ -7,14 +7,14 @@ import { NextRequest } from "next/server";
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   console.log('^^^^^^^^^^^^^^^^^^^^^my pathname = ', pathname)
-  // return;
-  return await updateSession(request)
+  
+  const isExit = locales.some(
+    (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
+  );
 
-  // const isExit = locales.some(
-  //   (locale) => pathname.startsWith(`/${locale}/`) || pathname === `/${locale}`
-  // );
-
-  // if (isExit) return;
+  if (isExit) {
+    return await updateSession(request)
+  }
 
   // if (pathname === '/auth/callback') {
   //   console.log('call /auth/callback')

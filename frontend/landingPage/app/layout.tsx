@@ -14,6 +14,8 @@ import { Viewport } from "next";
 import { Inter as FontSans } from "next/font/google";
 // import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { createClient } from "@/utils/supabase/server";
+import { AntdRegistry } from '@ant-design/nextjs-registry';
+import { ConfigProvider } from 'antd';
 // import { cookies } from "next/headers";
 // import { Database } from "@/types/supabase";
 
@@ -47,14 +49,14 @@ export default async function RootLayout({
   params: { lang: string | undefined };
 }) {
 
-   // 创建一个Supabase客户端
+  // 创建一个Supabase客户端
   //  const supabase = createServerComponentClient<Database>({ cookies });
   const supabase = await createClient();
 
-   // 获取当前用户信息
-   const {
-     data: { user },
-   } = await supabase.auth.getUser();
+  // 获取当前用户信息
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
   //  console.log('!!!!!!!!!user = ', user);
 
   return (
@@ -66,25 +68,36 @@ export default async function RootLayout({
           fontSans.variable
         )}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme={siteConfig.nextThemeColor}
-          enableSystem
-        >
-          <Header user={user}/>
-          <main className="flex flex-col items-center py-6">{children}</main>
-          <Footer />
-          <Analytics />
-          <TailwindIndicator />
-        </ThemeProvider>
-        {process.env.NODE_ENV === "development" ? (
-          <></>
-        ) : (
-          <>
-            <GoogleAnalytics />
-            <BaiDuAnalytics />
-          </>
-        )}
+        <AntdRegistry>
+          <ConfigProvider
+            theme={{
+              token: {
+                // Seed Token，影响范围大
+                colorPrimary: '#F97316'
+              },
+            }}
+          >
+            <ThemeProvider
+              attribute="class"
+              defaultTheme={siteConfig.nextThemeColor}
+              enableSystem
+            >
+              <Header user={user} />
+              <main className="flex flex-col items-center py-6">{children}</main>
+              <Footer />
+              <Analytics />
+              <TailwindIndicator />
+            </ThemeProvider>
+            {process.env.NODE_ENV === "development" ? (
+              <></>
+            ) : (
+              <>
+                <GoogleAnalytics />
+                <BaiDuAnalytics />
+              </>
+            )}
+          </ConfigProvider>
+        </AntdRegistry>
       </body>
     </html>
   );
