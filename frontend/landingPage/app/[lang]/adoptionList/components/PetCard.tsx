@@ -2,7 +2,6 @@ import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import { Cat, Dog } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
-
 export interface PetCardProps {
   petName: string
   desc: string
@@ -18,11 +17,21 @@ export interface PetCardProps {
   isDeworm: number
   isNeuter: number
   petDescription: string
+  imgs: string
+  ageMonth: number
+  adoptStatus: string
+  infoUpdateTime: string
+  characterDescription: string
+  adoptConditions: string
+  address: string
+  sourceRemark: string
 }
 
-export default function PetCard({ animalInfo }: { animalInfo: PetCardProps }) {
+export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardProps, onClick: (params: PetCardProps) => void }) {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 w-full flex-shrink-0">
+    <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 w-full flex-shrink-0 hover:cursor-pointer" onClick={() => {
+      onClick(animalInfo)
+    }}>
       <div className="relative h-40 w-full">
         <Image src={animalInfo.avatar || "/placeholder.svg"} alt={`${animalInfo.petName}的照片`} fill className="object-cover" />
       </div>
