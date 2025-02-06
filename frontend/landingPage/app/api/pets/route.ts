@@ -6,7 +6,8 @@ import { cookies } from "next/headers";
 
 export async function GET(request: Request) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/pets`, {
+        const query = request.url.split('?')[1];
+        const res = await fetch(`${process.env.NEXT_PUBLIC_CMS_URL}/api/pets?${query}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
