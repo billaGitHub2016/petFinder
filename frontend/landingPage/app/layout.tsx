@@ -16,6 +16,7 @@ import { Inter as FontSans } from "next/font/google";
 import { createClient } from "@/utils/supabase/server";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
+import AppStoreProvider from "@/components/AppStoreProvider";
 // import { cookies } from "next/headers";
 // import { Database } from "@/types/supabase";
 
@@ -41,6 +42,7 @@ export const metadata = {
 export const viewport: Viewport = {
   themeColor: siteConfig.themeColors,
 };
+
 export default async function RootLayout({
   children,
   params: { lang },
@@ -54,9 +56,13 @@ export default async function RootLayout({
   const supabase = await createClient();
 
   // 获取当前用户信息
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // const {
+  //   data: { user }, 
+  // } = await supabase.auth.getUser(); // 测试用
+  const user = await Promise.resolve({
+    name: 'haha',
+    id: 1
+  })
   //  console.log('!!!!!!!!!user = ', user);
 
   return (
@@ -82,11 +88,13 @@ export default async function RootLayout({
               defaultTheme={siteConfig.nextThemeColor}
               enableSystem
             >
-              <Header user={user} />
-              <main className="flex flex-col items-center py-6">{children}</main>
-              <Footer />
-              <Analytics />
-              <TailwindIndicator />
+              <AppStoreProvider contextValue={{ user }}>
+                <Header user={user} />
+                <main className="flex flex-col items-center py-6">{children}</main>
+                <Footer />
+                <Analytics />
+                <TailwindIndicator />
+              </AppStoreProvider>
             </ThemeProvider>
             {process.env.NODE_ENV === "development" ? (
               <></>
