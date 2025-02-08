@@ -1,0 +1,9 @@
+{
+  "version": "v1",
+  "packages": {
+    "create-contract-plugin": {
+      "signature": "159c918c6ed689dc6865a3eb1f58f63f",
+      "file": true
+    }
+  }
+}
