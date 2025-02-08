@@ -25,6 +25,7 @@ export interface PetCardProps {
   adoptConditions: string
   address: string
   sourceRemark: string
+  isShared: 0 | 1
 }
 
 export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardProps, onClick: (params: PetCardProps) => void }) {

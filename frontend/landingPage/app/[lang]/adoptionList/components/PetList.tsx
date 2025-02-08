@@ -5,8 +5,9 @@ import { useInView } from "react-intersection-observer"
 import qs from 'qs'
 import Filter from "./Filter";
 import PetCard, { PetCardProps } from "./PetCard";
-import pets from "@/raw-datas/1.json";
+import petsJson from "@/raw-datas/1.json";
 import PetDetailModal from "./PetDetailModal";
+import AdoptApplyModal from "./AdoptApplyModal";
 
 async function fetchPets({ pageParam = 1 }) {
     const query = qs.stringify({
@@ -27,6 +28,7 @@ async function fetchPets({ pageParam = 1 }) {
 export function PetList() {
 
     const detailModal = useRef<{ setOpen: Function }>(null);
+    const adoptApplyModal = useRef<{ setOpen: Function }>(null);
     const { ref, inView } = useInView()
     const { data, error, fetchNextPage, hasNextPage, isFetchingNextPage, status } = useInfiniteQuery({
         queryKey: ["pets"],
@@ -37,25 +39,17 @@ export function PetList() {
         },
         initialPageParam: 1
     })
-    console.log("data = ", data)
-    const pets = data?.pages.map((page) => page.data).flat() || [];
-    console.log("pets = ", pets)
+    // console.log("data = ", data)
+    // const pets = data?.pages.map((page) => page.data).flat() || [];
+    // console.log("pets = ", pets)
+    const pets = petsJson.data.records;
 
-    //   useEffect(() => {
-    //     // fetchPets().then((pets) => {
-    //     //     // setTask(t);π
-    //     //     console.log('fetch pets = ', pets)
-    //     // })
-    //     //     .finally(() => {
-    //     //     });;
-    //   });
-
-    useEffect(() => {
-        if (inView && hasNextPage) {
-            fetchNextPage()
-            console.log("fetch next page@@@@@@@@@@@@@")
-        }
-    }, [inView, fetchNextPage, hasNextPage])
+    // useEffect(() => {
+    //     if (inView && hasNextPage) {
+    //         fetchNextPage()
+    //         console.log("fetch next page@@@@@@@@@@@@@")
+    //     }
+    // }, [inView, fetchNextPage, hasNextPage])
 
     const onSearch = (searchTerm: string) => {
         console.log(searchTerm);
@@ -65,8 +59,12 @@ export function PetList() {
     const onPetClick = (pet: PetCardProps) => {
         console.log("click pet = ", pet);
         detailModal.current?.setOpen(true);
-        setCurPet(curPet);
+        setCurPet(pet);
     };
+    const onAdopt = () => {
+        // console.log("onAdopt");
+        adoptApplyModal.current?.setOpen(true);
+    }
 
     return (
 
@@ -89,7 +87,8 @@ export function PetList() {
             <div ref={ref} className="h-10 flex items-center justify-center">
                 {isFetchingNextPage ? "Loading more..." : hasNextPage ? "Load More" : "No more pets to load"}
             </div>
-            <PetDetailModal ref={detailModal} animalInfo={curPet}></PetDetailModal>
+            <PetDetailModal ref={detailModal} animalInfo={curPet} onAdopt={onAdopt}></PetDetailModal>
+            <AdoptApplyModal ref={adoptApplyModal}></AdoptApplyModal>
         </div>
     );
 }
