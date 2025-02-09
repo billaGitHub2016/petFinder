@@ -534,6 +534,41 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiPetApplyPetApply extends Struct.CollectionTypeSchema {
+  collectionName: 'pet_applies';
+  info: {
+    description: '';
+    displayName: 'petApply';
+    pluralName: 'pet-applies';
+    singularName: 'pet-apply';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    bugget: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    experience: Schema.Attribute.String;
+    health: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pet-apply.pet-apply'
+    > &
+      Schema.Attribute.Private;
+    pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
+    publishedAt: Schema.Attribute.DateTime;
+    selfStatus: Schema.Attribute.String;
+    state: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+  };
+}
+
 export interface ApiPetPet extends Struct.CollectionTypeSchema {
   collectionName: 'pets';
   info: {
@@ -914,32 +949,6 @@ export interface ApiPetPet extends Struct.CollectionTypeSchema {
           localized: true;
         };
       }>;
-  };
-}
-
-export interface ApiSexSex extends Struct.CollectionTypeSchema {
-  collectionName: 'sexes';
-  info: {
-    displayName: 'Sex';
-    pluralName: 'sexes';
-    singularName: 'sex';
-  };
-  options: {
-    draftAndPublish: true;
-  };
-  attributes: {
-    createdAt: Schema.Attribute.DateTime;
-    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
-    description: Schema.Attribute.String;
-    locale: Schema.Attribute.String & Schema.Attribute.Private;
-    localizations: Schema.Attribute.Relation<'oneToMany', 'api::sex.sex'> &
-      Schema.Attribute.Private;
-    publishedAt: Schema.Attribute.DateTime;
-    type: Schema.Attribute.Integer;
-    updatedAt: Schema.Attribute.DateTime;
-    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
-      Schema.Attribute.Private;
   };
 }
 
@@ -1457,8 +1466,8 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::pet-apply.pet-apply': ApiPetApplyPetApply;
       'api::pet.pet': ApiPetPet;
-      'api::sex.sex': ApiSexSex;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;
       'plugin::i18n.locale': PluginI18NLocale;

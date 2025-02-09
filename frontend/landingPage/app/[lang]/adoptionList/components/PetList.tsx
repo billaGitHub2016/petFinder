@@ -40,16 +40,16 @@ export function PetList() {
         initialPageParam: 1
     })
     // console.log("data = ", data)
-    // const pets = data?.pages.map((page) => page.data).flat() || [];
+    const pets = data?.pages.map((page) => page.data).flat() || [];
     // console.log("pets = ", pets)
-    const pets = petsJson.data.records;
+    // const pets = petsJson.data.records;
 
-    // useEffect(() => {
-    //     if (inView && hasNextPage) {
-    //         fetchNextPage()
-    //         console.log("fetch next page@@@@@@@@@@@@@")
-    //     }
-    // }, [inView, fetchNextPage, hasNextPage])
+    useEffect(() => {
+        if (inView && hasNextPage) {
+            fetchNextPage()
+            console.log("fetch next page@@@@@@@@@@@@@")
+        }
+    }, [inView, fetchNextPage, hasNextPage])
 
     const onSearch = (searchTerm: string) => {
         console.log(searchTerm);
@@ -88,7 +88,7 @@ export function PetList() {
                 {isFetchingNextPage ? "Loading more..." : hasNextPage ? "Load More" : "No more pets to load"}
             </div>
             <PetDetailModal ref={detailModal} animalInfo={curPet} onAdopt={onAdopt}></PetDetailModal>
-            <AdoptApplyModal ref={adoptApplyModal}></AdoptApplyModal>
+            <AdoptApplyModal ref={adoptApplyModal} animalInfo={curPet}></AdoptApplyModal>
         </div>
     );
 }

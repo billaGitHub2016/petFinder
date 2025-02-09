@@ -1,9 +1,9 @@
 {
   "version": "v1",
   "packages": {
-    "create-contract-plugin": {
-      "signature": "159c918c6ed689dc6865a3eb1f58f63f",
-      "file": true
+    "contract-strapi-plugin": {
+      "signature": "77437823b7284238021ceebd6a813803",
+      "link": true
     }
   }
 }
