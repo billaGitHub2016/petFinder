@@ -10,15 +10,15 @@ function usePetApply() {
   const { model, id, isSingleType } = useContentManagerContext();
 
   const [status, setStatus] = React.useState('loading');
-  const [tasks, setTasks] = React.useState([]);
+  const [petApplies, setPetApplies] = React.useState([]);
 
-  const refetchTasks = React.useCallback(async () => {
+  const refetchPetApplies = React.useCallback(async () => {
     try {
       const { data } = await fetchClient.get(
-        `/contract-strapi-plugin/getPetApply?documentId=${isSingleType ? '' : id}`
+        `/contract-strapi-plugin/${model}/getPetApply?documentId=${isSingleType ? '' : id}`
       );
 
-      setTasks(data);
+      setPetApplies(data);
       setStatus('success');
     } catch (e) {
       setStatus('error');
@@ -26,10 +26,10 @@ function usePetApply() {
   }, [fetchClient, id, isSingleType, model]);
 
   React.useEffect(() => {
-    refetchTasks();
-  }, [id, isSingleType, setTasks, setStatus, refetchTasks]);
+    refetchPetApplies();
+  }, [id, isSingleType, setPetApplies, setStatus, refetchPetApplies]);
 
-  return { status, tasks, refetchTasks };
+  return { status, petApplies, refetchPetApplies };
 }
 
 export default usePetApply;

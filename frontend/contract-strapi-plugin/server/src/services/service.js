@@ -7,6 +7,9 @@ const service = ({ strapi }) => ({
       documentId
     });
   },
+  async createContract(data) {
+    return strapi.documents('plugin::contract-strapi-plugin.contract').create({ data });
+  },
 });
 
 export default service;

@@ -8,6 +8,9 @@ const controller = ({ strapi }) => ({
   },
   getPetApply(ctx) {
     ctx.body = strapi.plugin('contract-strapi-plugin').service('service').getPetApply(ctx.params.documentId);
+  },
+  createContract(ctx) {
+    ctx.body = strapi.plugin('contract-strapi-plugin').service('service').createContract(ctx.request.body);
   }
 });
 

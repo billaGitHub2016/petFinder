@@ -17,4 +17,13 @@ export default [
       policies: [],
     },
   },
+  {
+    method: 'POST',
+    path: '/contracts',
+    // name of the controller file & the method.
+    handler: 'controller.createContract',
+    config: {
+      policies: [],
+    },
+  },
 ];
