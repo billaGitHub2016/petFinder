@@ -34,7 +34,7 @@ const PetDetailModal = (
   const imgArray =
     (animalInfo && animalInfo.imgs && animalInfo.imgs.split(",")) || [];
   const storeData = useContext(AppStoreContext);
-  console.log("user in child = ", storeData);
+  // console.log("user in child = ", storeData);
 
   return (
     <Modal

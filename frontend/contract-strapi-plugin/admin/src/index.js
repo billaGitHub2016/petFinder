@@ -2,7 +2,7 @@ import { getTranslation } from './utils/getTranslation';
 import { PLUGIN_ID } from './pluginId';
 import { Initializer } from './components/Initializer';
 import { PluginIcon } from './components/PluginIcon';
-import CreateContract from './pages/HomePage';
+import { HomePage as CreateContract } from './pages/HomePage';
 
 export default {
   register(app) {

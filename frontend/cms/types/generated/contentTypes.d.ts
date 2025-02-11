@@ -561,11 +561,12 @@ export interface ApiPetApplyPetApply extends Struct.CollectionTypeSchema {
     pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
     publishedAt: Schema.Attribute.DateTime;
     selfStatus: Schema.Attribute.String;
-    state: Schema.Attribute.String;
+    state: Schema.Attribute.Enumeration<['InReview', 'Pass', 'Reject']>;
     updatedAt: Schema.Attribute.DateTime;
     updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
       Schema.Attribute.Private;
     userId: Schema.Attribute.String;
+    userWallet: Schema.Attribute.String;
   };
 }
 

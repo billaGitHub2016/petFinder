@@ -8,6 +8,7 @@ import {
   useState,
   useContext,
 } from "react";
+import { useCurrentAccount } from "@mysten/dapp-kit";
 import { AppStoreContext } from "@/components/AppStoreProvider";
 import type { PetCardProps } from "./PetCard";
 
@@ -53,6 +54,7 @@ const AdoptApplyModal = (
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>("vertical");
   const { user } = useContext(AppStoreContext) as any;
+  const account = useCurrentAccount();
 
   const onSubmit: FormProps<FieldType>["onFinish"] = (values) => {
     console.log("Success:", values);
@@ -64,6 +66,8 @@ const AdoptApplyModal = (
         userId: user.email,
         pet: { connect: animalInfo && animalInfo.documentId },
         health: (values.health as unknown as string[])?.join(","),
+        state: 'InReview',
+        userWallet: account?.address
       },
     })
       .then(() => {

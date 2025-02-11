@@ -18,7 +18,7 @@ export default function LoginButton({ userData, lang }: {
   lang: string
 }) {
   console.log("userData props = ", userData);
-  const user = userData && userData.user && userData.user.user;
+  const user = userData && userData.user;
   return (
     <>
       {

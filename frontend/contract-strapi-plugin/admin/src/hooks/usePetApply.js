@@ -15,7 +15,7 @@ function usePetApply() {
   const refetchPetApplies = React.useCallback(async () => {
     try {
       const { data } = await fetchClient.get(
-        `/contract-strapi-plugin/${model}/getPetApply?documentId=${isSingleType ? '' : id}`
+        `/contract-strapi-plugin/getPetApply/${model}?documentId=${isSingleType ? '' : id}`
       );
 
       setPetApplies(data);

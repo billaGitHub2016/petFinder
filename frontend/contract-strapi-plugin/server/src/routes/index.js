@@ -10,7 +10,7 @@ export default [
   },
   {
     method: 'GET',
-    path: '/getPetApply',
+    path: '/getPetApply/:slug',
     // name of the controller file & the method.
     handler: 'controller.getPetApply',
     config: {

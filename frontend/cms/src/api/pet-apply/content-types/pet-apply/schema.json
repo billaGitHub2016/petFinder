@@ -24,15 +24,23 @@
     "bugget": {
       "type": "string"
     },
-    "state": {
-      "type": "string"
-    },
     "pet": {
       "type": "relation",
       "relation": "oneToOne",
       "target": "api::pet.pet"
     },
     "userId": {
+      "type": "string"
+    },
+    "state": {
+      "type": "enumeration",
+      "enum": [
+        "InReview",
+        "Pass",
+        "Reject"
+      ]
+    },
+    "userWallet": {
       "type": "string"
     }
   }
