@@ -17,6 +17,7 @@ import { createClient } from "@/utils/supabase/server";
 import { AntdRegistry } from '@ant-design/nextjs-registry';
 import { ConfigProvider } from 'antd';
 import AppStoreProvider from "@/components/AppStoreProvider";
+import SuiProviders from "@/components/providers/sui-provider"; 
 // import { cookies } from "next/headers";
 // import { Database } from "@/types/supabase";
 
@@ -66,7 +67,7 @@ export default async function RootLayout({
       <head />
       <body
         className={cn(
-          "min-h-screen bg-background font-sans antialiased",
+          "min-h-screen bg-background font-sans antialiased flex flex-col",
           fontSans.variable
         )}
       >
@@ -84,13 +85,15 @@ export default async function RootLayout({
               defaultTheme={siteConfig.nextThemeColor}
               enableSystem
             >
-              <AppStoreProvider contextValue={{ user }}>
-                <Header user={user} />
-                <main className="flex flex-col items-center py-6">{children}</main>
-                <Footer />
-                <Analytics />
-                <TailwindIndicator />
-              </AppStoreProvider>
+              <SuiProviders>
+                <AppStoreProvider contextValue={{ user }}>
+                  <Header user={user} />
+                  <main className="flex flex-col items-center py-6 flex-grow">{children}</main>
+                  <Footer />
+                  <Analytics />
+                  <TailwindIndicator />
+                </AppStoreProvider>
+              </SuiProviders>
             </ThemeProvider>
             {process.env.NODE_ENV === "development" ? (
               <></>

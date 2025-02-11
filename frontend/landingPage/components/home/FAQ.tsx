@@ -20,7 +20,6 @@ const FAQ = ({
   langName: string;
 }) => {
   const FAQS = ALL_FAQS[`FAQS_${langName.toUpperCase()}`];
-  console.log('faqs = ' + FAQS);
 
   return (
     <section
