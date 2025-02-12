@@ -94,7 +94,7 @@ module apply_for_adoption::apply_for_adoption {
         status: u8,
         // 备注
         remark: String,
-        // todo 规定传记录次数
+        // 规定传记录次数
         recordTimes: u64,
         // 质押合同
         locked_stake_id: Option<ID>,
@@ -272,7 +272,7 @@ module apply_for_adoption::apply_for_adoption {
 
     /// 用户-签署合同并缴纳押金
     /// 添加合同时明确捐赠部分费用
-    public fun sign_adopt_contract(contract_id: ID,
+    public entry fun sign_adopt_contract(contract_id: ID,
                                    adopt_contains: &mut AdoptContracts,
                                    coin: &mut Coin<SUI>,
                                    system_state: &mut SuiSystemState,
@@ -500,8 +500,6 @@ module apply_for_adoption::apply_for_adoption {
             // 退还押金与利息
             unstake(system_state, contract, true, public_uid, ctx);
         };
-
-
         // todo 通知用户审核结果
     }
 
