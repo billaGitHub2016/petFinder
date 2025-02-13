@@ -131,7 +131,6 @@ export const signContract = async (contractId: string, validatorAddress: string,
             // suiSystemState
             tx.object(SUI_SYSTEM_STATE_OBJECT_ID),
             tx.pure.address(validatorAddress),
-            tx.object(networkConfig.testnet.publicUid)
         ]
     })
     return tx;

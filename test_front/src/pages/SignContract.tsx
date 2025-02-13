@@ -37,8 +37,8 @@ const SignContract = () => {
                     coin,
                     // suiSystemState
                     tx.object(SUI_SYSTEM_STATE_OBJECT_ID),
-                    tx.pure.address(currentUser.address),
-                    tx.object(networkConfig.testnet.publicUid)
+                    // validator
+                    tx.pure.address(networkConfig.testnet.validator)
                 ]
             })
             signAndExecute({

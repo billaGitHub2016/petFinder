@@ -3,6 +3,7 @@ import Contract from "./pages/Contract";
 import NaviBar from "./components/navi-bar";
 import AdoptContracts from "@/pages/AdoptContracts.tsx";
 import SignContract from "@/pages/SignContract.tsx";
+import Validators from "@/pages/Validators.tsx";
 
 function App() {
     return (
@@ -13,6 +14,7 @@ function App() {
                     <Route path="/" element={<AdoptContracts/>}/>
                     <Route path="/createContract" element={<Contract/>}/>
                     <Route path="/signContract" element={<SignContract/>}/>
+                    <Route path="/validators" element={<Validators/>}/>
                 </Routes>
             </div>
         </Router>

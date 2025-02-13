@@ -4,13 +4,14 @@ import {createNetworkConfig} from "@mysten/dapp-kit";
 
 const {networkConfig, useNetworkVariable, useNetworkVariables} =
     createNetworkConfig({
-        // tx:39dyqykCJyKZGZbmwfsMWNMybuTAtHgzLbARVAzmhS8X
+        // tx:3gvKVG73RyQxu7U2SsKAYghVL5BDGNv4DekrsaweyMpy
         testnet: {
             url: getFullnodeUrl("testnet"),
-            packageID: "0xd7887652b24afe393ecf7b42fc6345345b6031a5309dbe6345e78c027f93383f",
-            // share ObjectId
-            publicUid: "0xd66840501d035dc723e964be8310c4bc5098f5bc0a98fdebbcfc83a27d40b7f6",
-            adoptContracts:"0xd9f27e83daa6a4f2f50915b806984c62fa01f5afefe9252d7d9d593fbe11b23b"
+            packageID: "0xe60042bc175e34d871538fcbb8a7726ec4f304e626d15ef2b05e927a53e501bd",
+            adoptContracts:"0x96e29471df8f26a32360e84e781bc70ace39a85f81abd630d4d5a3a65cd2051c",
+            //https://testnet.suivision.xyz/validator/0x6d6e9f9d3d81562a0f9b767594286c69c21fea741b1c2303c5b7696d6c63618a
+            // 随机找的一个测试网络 validator
+            validator:"0x6d6e9f9d3d81562a0f9b767594286c69c21fea741b1c2303c5b7696d6c63618a"
         },
     });
 const moudleName = "apply_for_adoption";
