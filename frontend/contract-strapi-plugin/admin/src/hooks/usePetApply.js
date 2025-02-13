@@ -19,6 +19,7 @@ function usePetApply() {
       );
 
       setPetApplies(data);
+      console.log('fetch data = ', data)
       setStatus('success');
     } catch (e) {
       setStatus('error');
@@ -29,7 +30,7 @@ function usePetApply() {
     refetchPetApplies();
   }, [id, isSingleType, setPetApplies, setStatus, refetchPetApplies]);
 
-  return { status, petApplies, refetchPetApplies };
+  return { status, petApplies, refetchPetApplies, model };
 }
 
 export default usePetApply;

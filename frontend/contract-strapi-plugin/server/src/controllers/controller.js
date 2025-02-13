@@ -7,9 +7,10 @@ const controller = ({ strapi }) => ({
       .getWelcomeMessage();
   },
   getPetApply(ctx) {
-    ctx.body = strapi.plugin('contract-strapi-plugin').service('service').getPetApply(ctx.params.documentId);
+    return strapi.plugin('contract-strapi-plugin').service('service').getPetApply(ctx.query.documentId);
   },
   createContract(ctx) {
+    console.log('createContract ctx.request.body = ', ctx.request.body);
     ctx.body = strapi.plugin('contract-strapi-plugin').service('service').createContract(ctx.request.body);
   }
 });

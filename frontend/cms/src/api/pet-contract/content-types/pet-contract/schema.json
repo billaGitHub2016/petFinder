@@ -1,0 +1,51 @@
+{
+  "kind": "collectionType",
+  "collectionName": "pet_contracts",
+  "info": {
+    "singularName": "pet-contract",
+    "pluralName": "pet-contracts",
+    "displayName": "PetContract",
+    "description": ""
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "contractAddress": {
+      "type": "string"
+    },
+    "userId": {
+      "type": "string"
+    },
+    "deposit": {
+      "type": "biginteger"
+    },
+    "recordTimes": {
+      "type": "integer"
+    },
+    "userWallet": {
+      "type": "string"
+    },
+    "pet": {
+      "type": "relation",
+      "relation": "oneToOne",
+      "target": "api::pet.pet"
+    },
+    "state": {
+      "type": "enumeration",
+      "enum": [
+        "toSign",
+        "inProgress",
+        "complete",
+        "termination"
+      ]
+    },
+    "remark": {
+      "type": "text"
+    },
+    "contractsContainerAddress": {
+      "type": "string"
+    }
+  }
+}

@@ -570,6 +570,45 @@ export interface ApiPetApplyPetApply extends Struct.CollectionTypeSchema {
   };
 }
 
+export interface ApiPetContractPetContract extends Struct.CollectionTypeSchema {
+  collectionName: 'pet_contracts';
+  info: {
+    description: '';
+    displayName: 'PetContract';
+    pluralName: 'pet-contracts';
+    singularName: 'pet-contract';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    contractAddress: Schema.Attribute.String;
+    contractsContainerAddress: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deposit: Schema.Attribute.BigInteger;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pet-contract.pet-contract'
+    > &
+      Schema.Attribute.Private;
+    pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
+    publishedAt: Schema.Attribute.DateTime;
+    recordTimes: Schema.Attribute.Integer;
+    remark: Schema.Attribute.Text;
+    state: Schema.Attribute.Enumeration<
+      ['toSign', 'inProgress', 'complete', 'termination']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+    userWallet: Schema.Attribute.String;
+  };
+}
+
 export interface ApiPetPet extends Struct.CollectionTypeSchema {
   collectionName: 'pets';
   info: {
@@ -1468,6 +1507,7 @@ declare module '@strapi/strapi' {
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
       'api::pet-apply.pet-apply': ApiPetApplyPetApply;
+      'api::pet-contract.pet-contract': ApiPetContractPetContract;
       'api::pet.pet': ApiPetPet;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

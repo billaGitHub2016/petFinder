@@ -3,18 +3,28 @@ const service = ({ strapi }) => ({
     return 'Welcome to Strapi 🚀';
   },
   async getPetApply(documentId) {
-    // return strapi.query('plugin::contract-strapi-plugin.pet-apply').find({
-    //   documentId
-    // });
-    return strapi.db.query('api::pet-apply.pet-apply').findMany({
-      where: {
-        // Only pass the related ID if it's pointing to a collection type
-        documentId
-      },
+    // console.log('~~~~~~~~~~~~~~~~documentId', documentId);
+    const result = await strapi.db.query('api::pet-apply.pet-apply').findOne({
+      where: { document_id: documentId },
+      // populate: {
+      //   pet: true,
+      // }
+      populate: true,
     });
+    return result;
+    // return strapi.db.query('api::pet-apply.pet-apply').findMany({
+    //   where: {
+    //     // Only pass the related ID if it's pointing to a collection type
+    //     document_id: documentId,
+    //   },
+    // });
   },
   async createContract(data) {
-    return strapi.documents('plugin::contract-strapi-plugin.contract').create({ data });
+    const result = await strapi
+      .documents('api::pet-contract.pet-contract')
+      .create({ data, status: data.status });
+    console.log('createContract result = ', result);
+    return result;
   },
 });
 
