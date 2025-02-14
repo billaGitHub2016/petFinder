@@ -7,8 +7,8 @@ const {networkConfig, useNetworkVariable, useNetworkVariables} =
         // tx:3gvKVG73RyQxu7U2SsKAYghVL5BDGNv4DekrsaweyMpy
         testnet: {
             url: getFullnodeUrl("testnet"),
-            packageID: "0xe60042bc175e34d871538fcbb8a7726ec4f304e626d15ef2b05e927a53e501bd",
-            adoptContracts:"0x96e29471df8f26a32360e84e781bc70ace39a85f81abd630d4d5a3a65cd2051c",
+            packageID: "0x88d15c734b854a80fd016b87832864e496606b38d11330842ab2917f03bab188",
+            adoptContracts:"0xd834cb59d06a10d10a272797cd3c70b83d2a517aefe1fc7370baa0853f520bc3",
             //https://testnet.suivision.xyz/validator/0x6d6e9f9d3d81562a0f9b767594286c69c21fea741b1c2303c5b7696d6c63618a
             // 随机找的一个测试网络 validator
             validator:"0x6d6e9f9d3d81562a0f9b767594286c69c21fea741b1c2303c5b7696d6c63618a"

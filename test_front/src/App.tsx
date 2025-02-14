@@ -1,9 +1,9 @@
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Contract from "./pages/Contract";
 import NaviBar from "./components/navi-bar";
-import AdoptContracts from "@/pages/AdoptContracts.tsx";
 import SignContract from "@/pages/SignContract.tsx";
-import Validators from "@/pages/Validators.tsx";
+import UploadRecord from "@/pages/UploadRecord.tsx";
+import AuditRecord from "@/pages/AuditRecord.tsx";
 
 function App() {
     return (
@@ -11,10 +11,10 @@ function App() {
             <div className="bg-background">
                 <NaviBar/>
                 <Routes>
-                    <Route path="/" element={<AdoptContracts/>}/>
                     <Route path="/createContract" element={<Contract/>}/>
                     <Route path="/signContract" element={<SignContract/>}/>
-                    <Route path="/validators" element={<Validators/>}/>
+                    <Route path="/uploadRecord" element={<UploadRecord/>}/>
+                    <Route path="/auditRecord" element={<AuditRecord/>}/>
                 </Routes>
             </div>
         </Router>

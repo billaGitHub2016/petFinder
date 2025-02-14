@@ -55,42 +55,7 @@ export const createAdoptContract = async (xId: string,
     return tx;
 }
 
-export const adoptContractsQuery = async () => {
-    const adoptContracts = await suiClient.getObject({
-        id: networkConfig.testnet.adoptContracts,
-        options: {
-            showContent: true
-        }
-    })
-    const contract = await suiClient.getObject({
-        id: "0xa6823bf196a9f709d5fcf53051e886d7bd839142a4d8cf7ad93898ba340fe719",
-        options: {
-            showContent: true
-        }
-    })
-    debugger
-    console.log(adoptContracts)
-    console.log(contract)
-
-    // events.data.forEach((event) => {
-    //     debugger
-    //     console.log(event.parsedJson)
-    //     // const adoptContracts = event.parsedJson as User;
-    //     // state.users.push(user);
-    // })
-    return adoptContracts;
-}
-
-const getSuiSystemState = async () => {
-    const suiSystemState = suiClient.getObject({
-        id: SUI_SYSTEM_STATE_OBJECT_ID,
-        options: {
-            showContent: true
-        }
-    });
-    return suiSystemState;
-};
-
+// 为了简单测试，先获取首个sui的coin
 export const getFirstSuiCoinObjectId = async (address:string) => {
     const coins = suiClient.getCoins({
         owner: address,
@@ -108,30 +73,4 @@ export const getFirstSuiCoinObjectId = async (address:string) => {
     })
 };
 
-/*
-    public fun sign_adopt_contract(contract_id: ID,
-    adopt_contains: &mut AdoptContracts,
-    coin: &mut Coin<SUI>,
-    system_state: &mut SuiSystemState,
-    validator_address: address,
-    public_uid: &mut PublicUid,
-    ctx: &mut TxContext) {
- */
-export const signContract = async (contractId: string, validatorAddress: string,suiCoinObjectId:string) => {
-    const tx = new Transaction();
-    tx.moveCall({
-        package: networkConfig.testnet.packageID,
-        module: "apply_for_adoption",
-        function: "sign_adopt_contract",
-        arguments: [
-            tx.pure.id(contractId),
-            tx.object(networkConfig.testnet.adoptContracts),
-            // coin
-            tx.object(suiCoinObjectId),
-            // suiSystemState
-            tx.object(SUI_SYSTEM_STATE_OBJECT_ID),
-            tx.pure.address(validatorAddress),
-        ]
-    })
-    return tx;
-}
+

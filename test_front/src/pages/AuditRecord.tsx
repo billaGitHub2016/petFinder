@@ -4,10 +4,11 @@ import {networkConfig} from "@/networkConfig.ts";
 import {SUI_SYSTEM_STATE_OBJECT_ID} from "@mysten/sui/utils";
 import {Transaction} from "@mysten/sui/transactions";
 
-const SignContract = () => {
+const AduitRecord = () => {
     const {mutate: signAndExecute} = useSignAndExecuteTransaction();
     const currentUser = useCurrentAccount();
-    const [amount, setAmount] = useState(0);
+    const [auditRemark, setAuditRemark] = useState('');
+    const [auditResult, setAuditResult] = useState(false);
     const [contractId, setContractId] = useState('');
     const handleSignContract = async () => {
         debugger
@@ -18,32 +19,28 @@ const SignContract = () => {
         }
         try {
             const tx = new Transaction();
-            tx.setGasBudget(amount + 100000000);
-            const [coin] = tx.splitCoins(tx.gas, [
-                amount
-            ]);
             /*
-    public fun sign_adopt_contract(contract_id: ID,
-    adopt_contains: &mut AdoptContracts,
-    coin: &mut Coin<SUI>,
-    system_state: &mut SuiSystemState,
-    validator_address: address,
-    public_uid: &mut PublicUid,
-    ctx: &mut TxContext) {
+        // 平台-审核上传的回访记录
+    public entry fun audit_record(contract_id: ID,
+                                  contracts: &mut AdoptContracts,
+                                  // 审核结果：true-通过；false-不通过
+                                  audit_result: bool,
+                                  // 审核备注
+                                  audit_remark: String,
+                                  system_state: &mut SuiSystemState,
+                                  ctx: &mut TxContext)
+    )
  */
             tx.moveCall({
                 package: networkConfig.testnet.packageID,
                 module: "apply_for_adoption",
-                function: "sign_adopt_contract",
+                function: "audit_record",
                 arguments: [
                     tx.pure.id(contractId),
                     tx.object(networkConfig.testnet.adoptContracts),
-                    // coin
-                    coin,
-                    // suiSystemState
-                    tx.object(SUI_SYSTEM_STATE_OBJECT_ID),
-                    // validator
-                    tx.pure.address(networkConfig.testnet.validator)
+                    tx.pure.bool(auditResult),
+                    tx.pure.string(auditRemark),
+                    tx.object(SUI_SYSTEM_STATE_OBJECT_ID)
                 ]
             })
             signAndExecute({
@@ -76,7 +73,7 @@ const SignContract = () => {
                     <div className="space-y-2">
                         <label htmlFor="contractId"
                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            xId
+                            contractId
                         </label>
                         <input
                             id="contractId"
@@ -88,16 +85,29 @@ const SignContract = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="contractId"
+                        <label htmlFor="auditResult"
                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            amount
+                            auditResult
                         </label>
                         <input
-                            id="amount"
-                            type="number"
-                            placeholder="Enter amount"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.valueAsNumber)}
+                            id="auditResult"
+                            type="checkbox"
+                            checked={auditResult} // Assuming auditResult is a boolean state
+                            onChange={(e) => setAuditResult(e.target.checked)} // Update state with checked value
+                            className="h-4 w-4"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="auditRemark"
+                               className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                            auditRemark
+                        </label>
+                        <input
+                            id="auditRemark"
+                            type="text"
+                            placeholder="Enter auditRemark"
+                            value={auditRemark}
+                            onChange={(e) => setAuditRemark(e.target.value)}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                     </div>
@@ -112,4 +122,4 @@ const SignContract = () => {
         </div>
     );
 }
-export default SignContract;
+export default AduitRecord;

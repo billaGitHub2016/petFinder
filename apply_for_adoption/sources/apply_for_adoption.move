@@ -275,7 +275,7 @@ module apply_for_adoption::apply_for_adoption {
     /// 添加合同时明确捐赠部分费用
     public entry fun sign_adopt_contract(contract_id: ID,
                                          adopt_contains: &mut AdoptContracts,
-                                         coin: &mut Coin<SUI>,
+                                         coin: Coin<SUI>,
                                          system_state: &mut SuiSystemState,
                                          validator_address: address,
                                          ctx: &mut TxContext) {
@@ -285,28 +285,43 @@ module apply_for_adoption::apply_for_adoption {
         assert!(contract.adopterAddress == sui::tx_context::sender(ctx), ERROR_ADDRESS);
         // 校验合约应未被签署
         assert!(contract.status == NOT_YET_IN_FORCE, ADOPTED_EXCEPTION);
-        // coin 中获取余额
-        let coin_balance = coin::balance_mut(coin);
         // 质押合同所需要的金额(合约押金+捐赠给平台)
         let contract_amount = contract.donateAmount + contract.amount;
-        // 校验用户余额是否足够（押金+捐赠金）
-        assert!(value(coin_balance) >= contract_amount, E_SUFFICIENT_BALANCE);
+        let mut mut_coin = coin;
         // 拆分出质押合同所需要的金额
-        let mut contract_balance = split(coin_balance, contract_amount);
+        let (contract_balance, balance): (Balance<SUI>, u64) = {
+            // coin 中获取余额
+            let coin_balance = coin::balance_mut(&mut mut_coin);
+            // 校验用户余额是否足够（押金+捐赠金）
+            assert!(value(coin_balance) >= contract_amount, E_SUFFICIENT_BALANCE);
+            let mut contract_balance = split(coin_balance, contract_amount);
+            let balance = coin_balance.value();
+            (contract_balance, balance)
+        };
+        let mut mut_contract_balance = contract_balance;
+        // 拆除剩余的金额返回给用户
+        if (balance > 0) {
+            let info = b"balance: ".to_string();
+            debug::print(&info);
+            debug::print(&balance);
+            transfer::public_transfer(mut_coin, sui::tx_context::sender(ctx));
+        } else {
+            coin::destroy_zero(mut_coin);
+        };
         // 捐赠 balance
         if (contract.donateAmount > 0) {
-            let plat_form_balance = split(&mut contract_balance, contract.donateAmount);
+            let plat_form_balance = split(&mut mut_contract_balance, contract.donateAmount);
             // 存储进平台
             let coin = coin::from_balance(plat_form_balance, ctx);
             transfer::public_transfer(coin, contract.platFormAddress);
         };
-        debug::print(&contract_balance);
+        debug::print(&mut_contract_balance);
         // 校验合约押金与当前余额相同
-        assert!(balance::value(&contract_balance) == contract.amount, AMOUNT_ERROR);
+        assert!(balance::value(&mut_contract_balance) == contract.amount, AMOUNT_ERROR);
         // 将剩余的balance(押金) 添加到 Sui 系统中,完成质押 stake()
         let staked_sui = request_add_stake_non_entry(
             system_state,
-            coin::from_balance(contract_balance, ctx),
+            coin::from_balance(mut_contract_balance, ctx),
             validator_address,
             ctx,
         );
@@ -343,7 +358,7 @@ module apply_for_adoption::apply_for_adoption {
     ) {
         // 找到对应的合同
         let contract: &mut AdoptContract = {
-            get_adopt_contract(&mut contracts.animal_contracts,&contracts.user_contracts,&mut contracts.contracts,
+            get_adopt_contract(&mut contracts.animal_contracts, &contracts.user_contracts, &mut contracts.contracts,
                 animal_id, x_id)
         };
         // 生效中/已完成的合约不能删除
@@ -379,8 +394,13 @@ module apply_for_adoption::apply_for_adoption {
         ctx: &mut TxContext,
     ) {
         // 获取合约
-        let contract: &mut AdoptContract = get_adopt_contract(&mut contracts.animal_contracts,&contracts.user_contracts,
-            &mut contracts.contracts, animal_id, x_id);
+        let contract: &mut AdoptContract = get_adopt_contract(
+            &mut contracts.animal_contracts,
+            &contracts.user_contracts,
+            &mut contracts.contracts,
+            animal_id,
+            x_id
+        );
         // 更新状态
         let owner = sui::tx_context::sender(ctx);
         // 校验是否是创建者创建
@@ -404,8 +424,13 @@ module apply_for_adoption::apply_for_adoption {
         ctx: &mut TxContext,
     ) {
         // 获取合约
-        let contract: &mut AdoptContract = get_adopt_contract(&mut contracts.animal_contracts,&contracts.user_contracts,
-            &mut contracts.contracts, animal_id, x_id);
+        let contract: &mut AdoptContract = get_adopt_contract(
+            &mut contracts.animal_contracts,
+            &contracts.user_contracts,
+            &mut contracts.contracts,
+            animal_id,
+            x_id
+        );
         // let locked_stake_id = option::borrow(&contract.locked_stake_id);
         // 更新合同状态
         // 获取用户合约
@@ -525,8 +550,8 @@ module apply_for_adoption::apply_for_adoption {
     /// 在用户领养的合约中找到合同
     public(package) fun get_adopt_contract(
         // contracts: &mut AdoptContracts,
-        animal_contracts:&mut Table<String, vector<ID>>,
-        user_contracts:&Table<String, vector<ID>>,
+        animal_contracts: &mut Table<String, vector<ID>>,
+        user_contracts: &Table<String, vector<ID>>,
         contracts: &mut Table<ID, AdoptContract>,
         animal_id: String,
         x_id: String
@@ -764,7 +789,7 @@ module apply_for_adoption::apply_for_adoption {
 
     #[test_only]
     public fun get_contract(contracts: &mut AdoptContracts, animal_id: String, x_id: String): &mut AdoptContract {
-        get_adopt_contract(&mut contracts.animal_contracts,&contracts.user_contracts,&mut contracts.contracts,
+        get_adopt_contract(&mut contracts.animal_contracts, &contracts.user_contracts, &mut contracts.contracts,
             animal_id, x_id)
     }
 

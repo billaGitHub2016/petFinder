@@ -119,14 +119,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -150,7 +149,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束测试
         test_scenario::end(platfrom_scenario);
         // 结束用户
@@ -196,14 +194,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -239,7 +236,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束测试
         test_scenario::end(platfrom_scenario);
         // 结束用户
@@ -285,14 +281,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -304,7 +299,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束测试
         test_scenario::end(platfrom_scenario);
         // 结束用户
@@ -350,14 +344,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, error_user_scenario, get_error_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -368,7 +361,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束测试
         test_scenario::end(platfrom_scenario);
         // 结束用户
@@ -419,14 +411,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -450,7 +441,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -501,14 +491,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -531,7 +520,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -583,14 +571,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -632,7 +619,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -680,14 +666,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -729,7 +714,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -781,14 +765,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -831,7 +814,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -878,14 +860,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -929,7 +910,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -976,14 +956,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -1021,7 +1000,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -1071,14 +1049,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         let contract_id: ID = {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -1112,7 +1089,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -1162,14 +1138,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -1200,7 +1175,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -1279,14 +1253,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         let contract_id: ID = {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -1309,7 +1282,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -1360,14 +1332,13 @@ module apply_for_adoption::apply_for_adoption_tests {
                 sign_contract_step1(&contracts, user_scenario, get_user_address());
             (contract_id, coin, user_scenario_new)
         };
-        let mut coin_ref = coin;
         let mut contracts_ref = contracts;
         let mut user_scenario_new_ref = user_scenario_new;
         let contract_id: ID = {
             sign_contract_step2(
                 &mut contracts_ref,
                 contract_id,
-                &mut coin_ref,
+                coin,
                 &mut system_state,
                 user_scenario_new_ref.ctx()
             );
@@ -1400,7 +1371,6 @@ module apply_for_adoption::apply_for_adoption_tests {
         // share_object 还回去
         test_scenario::return_shared(contracts_ref);
         test_scenario::return_shared(system_state);
-        coin::burn_for_testing(coin_ref);
         // 结束平台测试
         test_scenario::end(platfrom_scenario);
         // 结束用户测试
@@ -1451,7 +1421,7 @@ module apply_for_adoption::apply_for_adoption_tests {
     fun sign_contract_step2(
         contracts: &mut AdoptContracts,
         contract_id: ID,
-        coin: &mut Coin<SUI>,
+        coin: Coin<SUI>,
         system_state: &mut SuiSystemState,
         user_ctx: &mut TxContext,
     ) {

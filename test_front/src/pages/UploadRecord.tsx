@@ -1,13 +1,13 @@
 import {useCurrentAccount, useSignAndExecuteTransaction} from "@mysten/dapp-kit";
 import {useState} from "react";
 import {networkConfig} from "@/networkConfig.ts";
-import {SUI_SYSTEM_STATE_OBJECT_ID} from "@mysten/sui/utils";
+import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import {Transaction} from "@mysten/sui/transactions";
 
-const SignContract = () => {
+const UploadRecord = () => {
     const {mutate: signAndExecute} = useSignAndExecuteTransaction();
     const currentUser = useCurrentAccount();
-    const [amount, setAmount] = useState(0);
+    const [pic, setPic] = useState('');
     const [contractId, setContractId] = useState('');
     const handleSignContract = async () => {
         debugger
@@ -18,32 +18,25 @@ const SignContract = () => {
         }
         try {
             const tx = new Transaction();
-            tx.setGasBudget(amount + 100000000);
-            const [coin] = tx.splitCoins(tx.gas, [
-                amount
-            ]);
             /*
-    public fun sign_adopt_contract(contract_id: ID,
-    adopt_contains: &mut AdoptContracts,
-    coin: &mut Coin<SUI>,
-    system_state: &mut SuiSystemState,
-    validator_address: address,
-    public_uid: &mut PublicUid,
-    ctx: &mut TxContext) {
+            上传打卡记录
+    public entry fun upload_record(
+        contract_id: ID,
+        contracts: &mut AdoptContracts,
+        pic: String,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    )
  */
             tx.moveCall({
                 package: networkConfig.testnet.packageID,
                 module: "apply_for_adoption",
-                function: "sign_adopt_contract",
+                function: "upload_record",
                 arguments: [
                     tx.pure.id(contractId),
                     tx.object(networkConfig.testnet.adoptContracts),
-                    // coin
-                    coin,
-                    // suiSystemState
-                    tx.object(SUI_SYSTEM_STATE_OBJECT_ID),
-                    // validator
-                    tx.pure.address(networkConfig.testnet.validator)
+                    tx.pure.string(pic),
+                    tx.object(SUI_CLOCK_OBJECT_ID)
                 ]
             })
             signAndExecute({
@@ -76,7 +69,7 @@ const SignContract = () => {
                     <div className="space-y-2">
                         <label htmlFor="contractId"
                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            xId
+                            contractId
                         </label>
                         <input
                             id="contractId"
@@ -88,16 +81,16 @@ const SignContract = () => {
                         />
                     </div>
                     <div className="space-y-2">
-                        <label htmlFor="contractId"
+                        <label htmlFor="pic"
                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                            amount
+                            pic
                         </label>
                         <input
-                            id="amount"
-                            type="number"
-                            placeholder="Enter amount"
-                            value={amount}
-                            onChange={(e) => setAmount(e.target.valueAsNumber)}
+                            id="pic"
+                            type="text"
+                            placeholder="Enter pic"
+                            value={pic}
+                            onChange={(e) => setPic(e.target.value)}
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         />
                     </div>
@@ -112,4 +105,4 @@ const SignContract = () => {
         </div>
     );
 }
-export default SignContract;
+export default UploadRecord;
