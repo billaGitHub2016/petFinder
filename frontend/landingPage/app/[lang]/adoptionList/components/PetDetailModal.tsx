@@ -17,10 +17,12 @@ import { AppStoreContext } from "@/components/AppStoreProvider";
 const PetDetailModal = (
   {
     animalInfo,
-    onAdopt
+    onAdopt,
+    hasButton = true
   }: {
     animalInfo: PetCardProps | null;
-    onAdopt: () => void;
+    onAdopt?: () => void;
+    hasButton?: boolean;
   },
   ref: Ref<{
     setOpen: Function;
@@ -157,9 +159,9 @@ const PetDetailModal = (
         </div>
       </div>
 
-      <div className="absolute bottom-0 left-0 w-full">
+      { hasButton && (<div className="absolute bottom-0 left-0 w-full">
         <AdoptButtonGroup onAdopt={onAdopt}></AdoptButtonGroup>
-      </div>
+      </div>)}
     </Modal>
   );
 };
