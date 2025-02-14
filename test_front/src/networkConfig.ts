@@ -4,7 +4,7 @@ import {createNetworkConfig} from "@mysten/dapp-kit";
 
 const {networkConfig, useNetworkVariable, useNetworkVariables} =
     createNetworkConfig({
-        // tx:3gvKVG73RyQxu7U2SsKAYghVL5BDGNv4DekrsaweyMpy
+        // tx:5eVoriatVRYDShNGYgWQ61cipvsg7u4CvyKkyBz1t5CA
         testnet: {
             url: getFullnodeUrl("testnet"),
             packageID: "0x88d15c734b854a80fd016b87832864e496606b38d11330842ab2917f03bab188",
