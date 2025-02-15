@@ -1,1 +1,0 @@
-# contract-strapi-plugin
