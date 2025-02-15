@@ -228,4 +228,3 @@ const SubmitRecordModal = (
 };
 
 export default forwardRef(SubmitRecordModal);
-

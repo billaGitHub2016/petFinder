@@ -5,15 +5,13 @@
   "exports": {
     "./package.json": "./package.json",
     "./strapi-admin": {
-      "types": "./dist/admin/src/index.d.ts",
-      "source": "./admin/src/index.ts",
+      "source": "./admin/src/index.js",
       "import": "./dist/admin/index.mjs",
       "require": "./dist/admin/index.js",
       "default": "./dist/admin/index.js"
     },
     "./strapi-server": {
-      "types": "./dist/server/src/index.d.ts",
-      "source": "./server/src/index.ts",
+      "source": "./server/src/index.js",
       "import": "./dist/server/index.mjs",
       "require": "./dist/server/index.js",
       "default": "./dist/server/index.js"
@@ -26,9 +24,7 @@
     "build": "strapi-plugin build",
     "watch": "strapi-plugin watch",
     "watch:link": "strapi-plugin watch:link",
-    "verify": "strapi-plugin verify",
-    "test:ts:front": "run -T tsc -p admin/tsconfig.json",
-    "test:ts:back": "run -T tsc -p server/tsconfig.json"
+    "verify": "strapi-plugin verify"
   },
   "dependencies": {
     "@mysten/dapp-kit": "^0.14.50",
@@ -36,6 +32,15 @@
     "@strapi/icons": "^2.0.0-rc.16",
     "@tanstack/react-query": "^5.66.0",
     "react-intl": "^7.1.5"
+  },
+  "devDependencies": {
+    "@strapi/sdk-plugin": "^5.3.0",
+    "@strapi/strapi": "^5.9.0",
+    "prettier": "^3.4.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.29.0",
+    "styled-components": "^6.1.15"
   },
   "peerDependencies": {
     "@strapi/sdk-plugin": "^5.3.0",
@@ -47,13 +52,12 @@
   },
   "strapi": {
     "kind": "plugin",
-    "name": "create-contract-plugin",
+    "name": "contract-strapi-plugin",
     "displayName": "",
     "description": ""
   },
-  "name": "create-contract-plugin",
+  "name": "contract-strapi-plugin",
   "description": "",
   "license": "MIT",
-  "author": "billa <billa2013@163.com>",
-  "yalcSig": "be41079bb769b4ce4e9962e8eded3d45"
+  "author": "billa <billa2013@163.com>"
 }

@@ -45,7 +45,11 @@ async function fetchContracts({ userId }: { userId: string }) {
           $eq: userId,
         },
       },
+<<<<<<< HEAD
       populate: '*',
+=======
+      populate: 'pet',
+>>>>>>> 29f1cdaa2888fbf3b5b998ba8d2259e56a9909ff
       pagination: {
         page: 1,
         pageSize: 100,
@@ -93,6 +97,13 @@ const Contracts = () => {
     getContracts(user)
   }, [user]);
 
+<<<<<<< HEAD
+=======
+  const onSignContract = () => {
+    
+  }
+
+>>>>>>> 29f1cdaa2888fbf3b5b998ba8d2259e56a9909ff
   const columns: TableProps<DataType>["columns"] = [
     {
       title: "合同编号",
@@ -131,6 +142,7 @@ const Contracts = () => {
     },
     {
       title: "签署日期",
+<<<<<<< HEAD
       dataIndex: "signDate",
       key: "signDate",
       render: (_, { signDate }) => {
@@ -148,6 +160,10 @@ const Contracts = () => {
           <span>{finishDate && new Date(finishDate).toLocaleString()}</span>
         );
       }
+=======
+      dataIndex: "createdAt",
+      key: "createdAt",
+>>>>>>> 29f1cdaa2888fbf3b5b998ba8d2259e56a9909ff
     },
     {
       title: "合同状态",
@@ -189,6 +205,7 @@ const Contracts = () => {
     },
   ];
 
+<<<<<<< HEAD
   const onSuccess = () => {
     getContracts(user);
   }
@@ -197,6 +214,10 @@ const Contracts = () => {
     <div>
       <Button icon={<RedoOutlined />} onClick={() => getContracts(user)} className="mb-3"/>
       
+=======
+  return (
+    <div>
+>>>>>>> 29f1cdaa2888fbf3b5b998ba8d2259e56a9909ff
       <Table<DataType>
         loading={loading}
         columns={columns}
@@ -208,7 +229,11 @@ const Contracts = () => {
         animalInfo={petInfo}
         hasButton={false}
       ></PetDetailModal>
+<<<<<<< HEAD
       <SignContractModal ref={signModal} contract={curContract} onSuccess={onSuccess}></SignContractModal>
+=======
+      <SignContractModal ref={signModal} contract={curContract}></SignContractModal>
+>>>>>>> 29f1cdaa2888fbf3b5b998ba8d2259e56a9909ff
     </div>
   );
 };
