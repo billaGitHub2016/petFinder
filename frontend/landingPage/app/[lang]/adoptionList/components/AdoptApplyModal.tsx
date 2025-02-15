@@ -1,4 +1,4 @@
-import { Button, Modal, Form, Input, Radio, Checkbox, FormProps } from "antd";
+import { Button, Modal, Form, Input, Radio, Checkbox, FormProps, message } from "antd";
 import {
   forwardRef,
   Ref,
@@ -54,12 +54,15 @@ const AdoptApplyModal = (
   const [form] = Form.useForm();
   const [formLayout, setFormLayout] = useState<LayoutType>("vertical");
   const { user } = useContext(AppStoreContext) as any;
+  const [messageApi, contextHolder] = message.useMessage();
+
   console.log("user = ", user);
   const account = useCurrentAccount();
 
   const onSubmit: FormProps<FieldType>["onFinish"] = (values) => {
-    console.log("Success:", values);
-    console.log("user = ", user);
+    // console.log("Success:", values);
+    // console.log("user = ", user);
+    setLoading(true)
     createApply({
       data: {
         ...values,
@@ -72,10 +75,22 @@ const AdoptApplyModal = (
       statue: 'published'
     })
       .then(() => {
+        messageApi.open({
+          type: "success",
+          content: "提交申请成功",
+        })
         form.resetFields();
         setOpen(false);
       })
-      .catch((error) => {});
+      .catch((error) => {
+        messageApi.open({
+          type: "error",
+          content: "提交申请失败：" + error.message,
+        })
+      })
+      .finally(() => {
+        setLoading(false)
+      });
   };
 
   const healthOptions = [
@@ -106,13 +121,13 @@ const AdoptApplyModal = (
   return (
     <Modal
       title={<p>填写申请表</p>}
-      loading={loading}
       open={open}
       footer={null}
       width="700px"
       maskClosable={false}
       onCancel={() => setOpen(false)}
     >
+      {contextHolder}
       <div className="p-2">
         <Form
           layout={formLayout}
@@ -158,8 +173,8 @@ const AdoptApplyModal = (
             </Form.Item>
           </div>
           <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Submit
+            <Button type="primary" htmlType="submit" loading={loading}>
+              提交
             </Button>
           </Form.Item>
         </Form>

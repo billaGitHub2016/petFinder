@@ -16,13 +16,17 @@ import { redirect } from "next/navigation";
 
 const { confirm } = Modal;
 
-async function fetchPets({ pageParam = 1 }) {
+async function fetchPets({ pageParam = 1, petType = '' }) {
   const query = qs.stringify(
     {
       pagination: {
         page: pageParam,
         pageSize: 8,
       },
+      filter: {
+        petType,
+      },
+      sort: 'createdAt:desc'
     },
     {
       encodeValuesOnly: true, // prettify URL
@@ -69,7 +73,6 @@ export function PetList() {
   useEffect(() => {
       if (inView && hasNextPage) {
           fetchNextPage()
-          console.log("fetch next page@@@@@@@@@@@@@")
       }
   }, [inView, fetchNextPage, hasNextPage])
 
@@ -79,7 +82,7 @@ export function PetList() {
 
   const [curPet, setCurPet] = useState(null);
   const onPetClick = (pet: PetCardProps) => {
-    console.log("click pet = ", pet);
+    // console.log("click pet = ", pet);
     detailModal.current?.setOpen(true);
     setCurPet(pet);
   };
@@ -113,13 +116,13 @@ export function PetList() {
     <>
       {contextHolder}
       <div className="flex flex-col justify-center items-center w-5/6">
-        <div className="flex justify-start items-center mb-4 w-full">
+        {/* <div className="flex justify-start items-center mb-4 w-full">
           <Filter searchCallback={onSearch}></Filter>
-        </div>
+        </div> */}
         <div className="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 gap-4 overflow-hidden relative transition-all w-full">
           {pets.map((item: any) => {
             return (
-              <div key={item.petId} className="mb-4 z-0 w-full">
+              <div key={item.documentId} className="mb-4 z-0 w-full">
                 <PetCard
                   animalInfo={item as unknown as PetCardProps}
                   onClick={onPetClick}

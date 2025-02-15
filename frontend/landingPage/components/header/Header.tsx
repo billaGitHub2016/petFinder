@@ -39,7 +39,7 @@ const Header = (user: any) => {
           >
             <Image
               alt="Logo"
-              src="/pet-finder-logo.png"
+              src="/pet-finder-logo-3.png"
               className="rounded-sm"
               width={48}
               height={48}

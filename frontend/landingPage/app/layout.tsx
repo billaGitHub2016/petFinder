@@ -57,11 +57,11 @@ export default async function RootLayout({
   const supabase = await createClient();
 
   // 获取当前用户信息
-  // const {
-  //   data: { user }, 
-  // } = await supabase.auth.getUser(); // 测试用
+  const {
+    data: { user }, 
+  } = await supabase.auth.getUser(); // 测试用
   //  console.log('!!!!!!!!!user = ', user);
-  const user = { email: 'pengbilla@gmail.com' } 
+  // const user = { email: 'pengbilla@gmail.com' } 
 
   return (
     <html lang={lang || defaultLocale} suppressHydrationWarning>

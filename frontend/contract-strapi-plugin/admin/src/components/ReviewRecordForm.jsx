@@ -45,128 +45,89 @@ const CreateContractForm = ({ record }) => {
 
       txb.setGasBudget(100000000);
       console.log('packageId = ', PACKAGE_ID);
-      await new Promise(async (resolve, reject) => {
-        // txb.moveCall({
-        //   target: `${PACKAGE_ID}::apply_for_adoption::audit_record`,
-        //   arguments: [
-        //     txb.pure.id(record?.contract?.contractAddress),
-        //     txb.object(CONTRACTS_CONTAINER), // contracts
-        //     txb.pure.bool(result === 'Pass'),
-        //     txb.pure.string(comment),
-        //     txb.object(SUI_SYSTEM_STATE_OBJECT_ID)
-        //   ],
-        //   typeArguments: [],
-        // });
+      await new Promise((resolve, reject) => {
+        txb.moveCall({
+          target: `${PACKAGE_ID}::apply_for_adoption::audit_record`,
+          arguments: [
+            txb.pure.id(record?.contract?.contractAddress),
+            txb.object(CONTRACTS_CONTAINER), // contracts
+            txb.pure.bool(result === 'Pass'),
+            txb.pure.string(comment),
+            txb.object(SUI_SYSTEM_STATE_OBJECT_ID)
+          ],
+          typeArguments: [],
+        });
+        console.log('start txb !!!!!!!!!!!!!!!!!!')
+        // Show loading state
+        setLoading(true);
 
-        // // Show loading state
-        // setLoading(true);
-
-        // signAndExecute(
-        //   {
-        //     transaction: txb,
-        //   },
-        //   {
-        //     onSuccess: async (data) => {
-        //       console.log('transaction digest: ' + JSON.stringify(data));
-        //       if ((data.effects && data.effects.status.status) === 'success') {
-        //           const recordRes = await fetchClient.post('/contract-strapi-plugin/records', {
-        //             documentId: record?.documentId,
-        //             data: {
-        //               result,
-        //               comment
-        //             }
-        //           }); // 更新记录
-        //           console.log('更新记录 = ', recordRes)
-                
-        //           if (recordRes.error) {
-        //             reject(new Error(recordRes.error.message));
-        //             return
-        //           }
-
-        //           const allRecordsRes = await fetchClient.get(`/contract-strapi-plugin/getRecordsByContract?contractId=${record.contract.documentId}`, {
-        //             documentId: record?.documentId,
-        //             data: {
-        //               result,
-        //               comment
-        //             }
-        //           });
-        //           console.log('所有记录 = ', allRecordsRes)
-        //           if (allRecordsRes.error) {
-        //             reject(new Error(allRecordsRes.error.message));
-        //             return
-        //           }
-        //           const allRecords = allRecordsRes.data.filter(item => item.result === 'Pass');
-        //           if (allRecords.length >= record.contract.recordTimes) {
-        //             // 通过次数够了，更新合同状态
-        //             const contractRes = await fetchClient.put(`/contract-strapi-plugin/contracts`, {
-        //               documentId: record?.contract?.documentId,
-        //               data: {
-        //                 state: 'complete',
-        //                 finishDate: new Date().toISOString()
-        //               }
-        //             });
-        //             console.log('更新合同状态 = ', contractRes)
-        //             if (contractRes.error) {
-        //               reject(new Error(contractRes.error.message));
-        //               return
-        //             }
-        //           }
-        //       } else {
-        //         reject(new Error('交易失败: ' + data.digest));
-        //       }
-        //     },
-        //     onError: (err) => {
-        //       console.error('transaction error: ' + err);
-        //       reject(err);
-        //     },
-        //   }
-        // );
-        const recordRes = await fetchClient.put('/contract-strapi-plugin/records', {
-          documentId: record?.documentId,
-          data: {
-            result,
-            comment,
+        signAndExecute(
+          {
+            transaction: txb,
           },
-          status: 'published'
-        }); // 更新记录
-        console.log('更新记录 = ', recordRes)
-      
-        if (recordRes.error) {
-          reject(new Error(recordRes.error.message));
-          return
-        }
+          {
+            onSuccess: async (data) => {
+              console.log('transaction digest: ' + JSON.stringify(data));
+              if ((data.effects && data.effects.status.status) === 'success') {
+                const recordRes = await fetchClient.put('/contract-strapi-plugin/records', {
+                  documentId: record?.documentId,
+                  data: {
+                    result,
+                    comment,
+                  },
+                  status: 'published'
+                }); // 更新记录
+                // console.log('更新记录 = ', recordRes)
+              
+                if (recordRes.error) {
+                  reject(new Error(recordRes.error.message));
+                  return
+                }
+        
+                await new Promise(res => setTimeout(res, 500));
+        
+                const allRecordsRes = await fetchClient.get(`/contract-strapi-plugin/getRecordsByContract/api::record.record?contractId=${record.contract.documentId}`);
+                // console.log('所有记录 = ', allRecordsRes)
+                if (allRecordsRes.error) {
+                  reject(new Error(allRecordsRes.error.message));
+                  return
+                }
+                const allRecords = allRecordsRes.data
+                // console.log('record.contract = ', record.contract)
+                if (allRecords.length >= record.contract.recordTimes) {
+                  // 通过次数够了，更新合同状态
+                  const contractRes = await fetchClient.put(`/contract-strapi-plugin/contracts`, {
+                    documentId: record?.contract?.documentId,
+                    data: {
+                      state: 'complete',
+                      finishDate: new Date().toISOString()
+                    },
+                    status: 'published'
+                  });
+                  // console.log('更新合同状态 = ', contractRes)
+                  if (contractRes.error) {
+                    reject(new Error(contractRes.error.message));
+                    return
+                  }
+                }
 
-        await new Promise(res => setTimeout(res, 500));
-
-        const allRecordsRes = await fetchClient.get(`/contract-strapi-plugin/getRecordsByContract/api::record.record?contractId=${record.contract.documentId}`);
-        console.log('所有记录 = ', allRecordsRes)
-        if (allRecordsRes.error) {
-          reject(new Error(allRecordsRes.error.message));
-          return
-        }
-        const allRecords = allRecordsRes.data
-        console.log('record.contract = ', record.contract)
-        if (allRecords.length >= record.contract.recordTimes) {
-          // 通过次数够了，更新合同状态
-          const contractRes = await fetchClient.put(`/contract-strapi-plugin/contracts`, {
-            documentId: record?.contract?.documentId,
-            data: {
-              state: 'complete',
-              finishDate: new Date().toISOString()
+                resolve('');
+              } else {
+                reject(new Error('交易失败: ' + data.digest));
+              }
             },
-            status: 'published'
-          });
-          console.log('更新合同状态 = ', contractRes)
-          if (contractRes.error) {
-            reject(new Error(contractRes.error.message));
-            return
+            onError: (err) => {
+              console.error('transaction error: ' + err);
+              reject(err);
+            },
           }
-        }
+        );
+        
       });
 
       setMessage({
         type: 'success',
-        msg: '合同创建成功',
+        msg: '审核成功',
       });
     } catch (e) {
       console.error(e);

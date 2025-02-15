@@ -119,7 +119,7 @@ const PetDetailModal = (
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
               <div className="text-gray-600">发布时间</div>
-              <div>{animalInfo && animalInfo.infoUpdateTime}</div>
+              <div>{animalInfo && new Date(animalInfo.infoUpdateTime).toLocaleString()}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
               <div className="text-gray-600">性格</div>

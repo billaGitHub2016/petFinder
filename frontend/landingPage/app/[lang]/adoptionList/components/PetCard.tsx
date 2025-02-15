@@ -51,7 +51,7 @@ export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardPr
           </div>
           <p className="flex items-center text-sm">
             <span className="text-xs px-2 py-1 bg-orange-400 text-white rounded-sm mr-1">领养区域</span>
-            <span className="text-xs px-2 py-1 bg-orange-100 text-[hsl(24.6,95%,53.1%)] rounded-sm truncate">{animalInfo.adoptNeedAddress}</span>
+            <span className="text-xs px-2 py-1 bg-orange-100 text-[hsl(24.6,95%,53.1%)] rounded-sm truncate max-w-52">{animalInfo.adoptNeedAddress}</span>
           </p>
           <div>
             <Badge variant="secondary" className="mr-1">{parseFloat(parseFloat(animalInfo.weight).toFixed(1))} kg</Badge>
@@ -62,7 +62,7 @@ export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardPr
             <Badge variant="secondary" className="mr-1">{animalInfo.isDeworm === 1 ? '已' : '未'}驱虫</Badge>
             <Badge variant="secondary" className="mr-1">{animalInfo.isNeuter === 1 ? '已' : '未'}绝育</Badge>
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{animalInfo.petDescription}</p>
+          <p className="text-gray-600 text-sm leading-relaxed">{animalInfo.petDescription}</p>
         </div>
       </CardContent>
     </Card>
