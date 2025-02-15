@@ -3,7 +3,7 @@ import { TypewriterEffect } from "@/components/ui/typewriter-effect";
 // import TypingAnimation from "@/components/ui/typing-animation";
 import CTAButton from "@/components/home/CTAButton";
 
-const Hero = ({ locale, CTALocale }: { locale: any; CTALocale: any }) => {
+const Hero = ({ locale, CTALocale, lang }: { locale: any; CTALocale: any; lang: string }) => {
   const words = locale.titleEnd.split('').map((item: string, index: number) => {
     return {
       text: item,
@@ -42,7 +42,7 @@ const Hero = ({ locale, CTALocale }: { locale: any; CTALocale: any }) => {
             {locale.description}
           </p>
           <div className="mt-10">
-            <CTAButton locale={CTALocale}></CTAButton>
+            <CTAButton locale={CTALocale} lang={lang}></CTAButton>
           </div>
         </div>
       </section>

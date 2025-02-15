@@ -534,6 +534,84 @@ export interface ApiGlobalGlobal extends Struct.SingleTypeSchema {
   };
 }
 
+export interface ApiPetApplyPetApply extends Struct.CollectionTypeSchema {
+  collectionName: 'pet_applies';
+  info: {
+    description: '';
+    displayName: 'petApply';
+    pluralName: 'pet-applies';
+    singularName: 'pet-apply';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    bugget: Schema.Attribute.String;
+    comment: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    experience: Schema.Attribute.String;
+    health: Schema.Attribute.String;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pet-apply.pet-apply'
+    > &
+      Schema.Attribute.Private;
+    pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
+    publishedAt: Schema.Attribute.DateTime;
+    selfStatus: Schema.Attribute.String;
+    state: Schema.Attribute.Enumeration<['InReview', 'Pass', 'Reject']>;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+    userWallet: Schema.Attribute.String;
+  };
+}
+
+export interface ApiPetContractPetContract extends Struct.CollectionTypeSchema {
+  collectionName: 'pet_contracts';
+  info: {
+    description: '';
+    displayName: 'PetContract';
+    pluralName: 'pet-contracts';
+    singularName: 'pet-contract';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    contractAddress: Schema.Attribute.String;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    deposit: Schema.Attribute.BigInteger;
+    finishDate: Schema.Attribute.DateTime;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::pet-contract.pet-contract'
+    > &
+      Schema.Attribute.Private;
+    pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
+    petApply: Schema.Attribute.Relation<'oneToOne', 'api::pet-apply.pet-apply'>;
+    publishedAt: Schema.Attribute.DateTime;
+    recordTimes: Schema.Attribute.Integer;
+    remark: Schema.Attribute.Text;
+    signDate: Schema.Attribute.DateTime;
+    state: Schema.Attribute.Enumeration<
+      ['toSign', 'inProgress', 'complete', 'termination']
+    >;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
+    userWallet: Schema.Attribute.String;
+  };
+}
+
 export interface ApiPetPet extends Struct.CollectionTypeSchema {
   collectionName: 'pets';
   info: {
@@ -914,6 +992,51 @@ export interface ApiPetPet extends Struct.CollectionTypeSchema {
           localized: true;
         };
       }>;
+  };
+}
+
+export interface ApiRecordRecord extends Struct.CollectionTypeSchema {
+  collectionName: 'records';
+  info: {
+    description: '';
+    displayName: 'Record';
+    pluralName: 'records';
+    singularName: 'record';
+  };
+  options: {
+    draftAndPublish: true;
+  };
+  attributes: {
+    comment: Schema.Attribute.String;
+    content: Schema.Attribute.String;
+    contract: Schema.Attribute.Relation<
+      'oneToOne',
+      'api::pet-contract.pet-contract'
+    >;
+    createdAt: Schema.Attribute.DateTime;
+    createdBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    imgs: Schema.Attribute.Media<
+      'images' | 'files' | 'videos' | 'audios',
+      true
+    >;
+    locale: Schema.Attribute.String & Schema.Attribute.Private;
+    localizations: Schema.Attribute.Relation<
+      'oneToMany',
+      'api::record.record'
+    > &
+      Schema.Attribute.Private;
+    pet: Schema.Attribute.Relation<'oneToOne', 'api::pet.pet'>;
+    publishedAt: Schema.Attribute.DateTime;
+    result: Schema.Attribute.Enumeration<
+      ['Pass', 'Reject', 'Abandon', 'InReview']
+    >;
+    submitDate: Schema.Attribute.DateTime;
+    submitText: Schema.Attribute.String;
+    updatedAt: Schema.Attribute.DateTime;
+    updatedBy: Schema.Attribute.Relation<'oneToOne', 'admin::user'> &
+      Schema.Attribute.Private;
+    userId: Schema.Attribute.String;
   };
 }
 
@@ -1457,7 +1580,10 @@ declare module '@strapi/strapi' {
       'api::author.author': ApiAuthorAuthor;
       'api::category.category': ApiCategoryCategory;
       'api::global.global': ApiGlobalGlobal;
+      'api::pet-apply.pet-apply': ApiPetApplyPetApply;
+      'api::pet-contract.pet-contract': ApiPetContractPetContract;
       'api::pet.pet': ApiPetPet;
+      'api::record.record': ApiRecordRecord;
       'api::sex.sex': ApiSexSex;
       'plugin::content-releases.release': PluginContentReleasesRelease;
       'plugin::content-releases.release-action': PluginContentReleasesReleaseAction;

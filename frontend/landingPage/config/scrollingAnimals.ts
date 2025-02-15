@@ -2,7 +2,7 @@
 export const Animals = [
   {
     name: "贝壳",
-    image: "https://pub-d4862abababb476e8724da7f0b64c5c1.r2.dev/medium_scrolling_1_599a9a8e77.png",
+    image: "https://pub-d4862abababb476e8724da7f0b64c5c1.r2.dev/large_scrolling_1_871ee8f8d7.png",
     desc: '比较胆小，要耐心相处，可能一段非常长的时间才能摸一下，贝壳喜欢跟猫相处，但非常怕人类',
     city: "佛山市",
   },

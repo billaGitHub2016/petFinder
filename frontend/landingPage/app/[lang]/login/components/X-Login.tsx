@@ -10,7 +10,7 @@ import { createClient } from "@/utils/supabase/client"
 // import { createClient } from "@supabase/supabase-js";
 import { useState } from "react";
 // import { SubmitHandler, useForm } from "react-hook-form";
-import { AiOutlineGoogle, AiOutlineTwitter } from "react-icons/ai";
+import { AiOutlineGoogle, AiOutlineTwitter,  } from "react-icons/ai";
 // import { WaitingForMagicLink } from "./WaitingForMagicLink";
 
 type Inputs = {
@@ -142,7 +142,7 @@ export const Login = ({
             className="font-semibold"
           >
             <AiOutlineTwitter size={20} />
-            X登录
+             使用 X 账号登录
           </Button>
 
           {/* <form

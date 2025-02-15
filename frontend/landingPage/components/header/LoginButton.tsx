@@ -1,3 +1,5 @@
+"use client"
+
 import { AvatarIcon } from "@radix-ui/react-icons";
 import {
   DropdownMenu,
@@ -11,22 +13,27 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 
-export default async function LoginButton(userData: any) {
+export default function LoginButton({ userData, lang }: {
+  userData: any
+  lang: string
+}) {
   console.log("userData props = ", userData);
+  const user = userData && userData.user;
   return (
     <>
-      {!userData ||
-        (userData && !userData.user && (
-          <Link href="/login">
+      {
+        !user && (
+          <Link href={`/${lang ? 'zh' : lang}/login`}>
             <Button variant={"ghost"}>登录 / 注册</Button>
           </Link>
-        ))}
-      {userData && userData.user && userData.user.user && (
+        )
+      }
+      {user && (
         <div className="flex flex-row gap-4 text-center align-middle justify-center">
           <DropdownMenu>
             <DropdownMenuTrigger asChild className="cursor-pointer">
-              {(userData.user.user.user_metadata &&
-                userData.user.user.user_metadata.avatar_url && (
+              {(user.user_metadata &&
+                user.user_metadata.avatar_url && (
                   // <Image
                   //   height={24}
                   //   width={24}
@@ -34,7 +41,7 @@ export default async function LoginButton(userData: any) {
                   //   alt="avatar"
                   // />
                   <img
-                    src={userData.user.user.user_metadata.avatar_url}
+                    src={user.user_metadata.avatar_url}
                     alt="avatar"
                     className="h-8 w-8 rounded-full"
                   />
@@ -44,7 +51,7 @@ export default async function LoginButton(userData: any) {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
               <DropdownMenuLabel className="text-primary text-center overflow-hidden text-ellipsis">
-                {userData.user.user.email}
+                {user.email}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <form action="/auth/sign-out" method="post">

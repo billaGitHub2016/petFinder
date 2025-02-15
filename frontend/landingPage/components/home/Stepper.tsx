@@ -3,15 +3,17 @@ import React from "react";
 import { RoughNotation } from "react-rough-notation";
 import { AuditOutlined, SmileOutlined, SolutionOutlined, UserOutlined } from '@ant-design/icons';
 import { Steps } from 'antd';
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 const Feature = ({
   id,
   locale,
-  langName,
+  lang,
 }: {
   id: string;
   locale: any;
-  langName: string;
+  lang: string;
 }) => {
   return (
     <section
@@ -23,6 +25,19 @@ const Feature = ({
           {locale.title}
         </RoughNotation>
       </h2>
+      <Link
+        href={`/${lang === "en" ? "" : lang}/adoptionList`}
+        rel="noopener noreferrer nofollow"
+        className="flex justify-center"
+      >
+        <Button
+          variant="default"
+          className="flex items-center gap-2 text-white"
+          aria-label="Get Boilerplate"
+        >
+          前往领养中心
+        </Button>
+      </Link>
       <Steps
         items={[
           {

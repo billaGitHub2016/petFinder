@@ -15,12 +15,9 @@ export async function GET(request: Request) {
             }
         })
         const pets = await res.json()
-
-        console.log('pets = ', pets)
-
         return NextResponse.json({ message: "ok", data: pets }, { status: 200 })
     } catch (error) {
-        console.error("查询任务详情失败:", error)
-        return NextResponse.json({ error: "查询任务详情失败" }, { status: 500 })
+        console.error("查询宠物失败:", error)
+        return NextResponse.json({ error: "查询宠物失败" }, { status: 500 })
     }
 }

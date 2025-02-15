@@ -5,27 +5,29 @@ import { siteConfig } from "@/config/site";
 import { MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { ThemedButton } from "../ThemedButton";
 import LoginButton from "./LoginButton";
+import { ConnectButton } from "@mysten/dapp-kit";
 
 const links = [
-  { label: "首页", href: "#Features" },
-  { label: "宠物领养", href: "#Pricing" },
+  { label: "首页", href: "" },
+  { label: "领养中心", href: "/adoptionList" },
   // { label: "Testimonials", href: "#Testimonials" },
-  { label: "FAQ", href: "#FAQ" },
+  { label: "我的", href: "/myApply" },
 ];
 
 const Header = (user: any) => {
   // console.log('user header = ', user);
   const params = useParams();
-  const lang = params.lang;
+  const lang = params.lang as string;
+  const pathName = usePathname();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
-    <header className="py-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <header className="py-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 w-full">
       <nav className="relative z-50 flex justify-between items-center">
         {/* Left section */}
         <div className="flex items-center md:gap-x-12 flex-1">
@@ -37,10 +39,10 @@ const Header = (user: any) => {
           >
             <Image
               alt="Logo"
-              src="/logo.svg"
-              className="w-8 h-8"
-              width={32}
-              height={32}
+              src="/pet-finder-logo.png"
+              className="rounded-sm"
+              width={48}
+              height={48}
             />
             <span className="text-gray-950 dark:text-gray-300 hidden md:block">
               {siteConfig.name}
@@ -51,7 +53,7 @@ const Header = (user: any) => {
         {/* Center section - Navigation */}
         <ul className="hidden md:flex items-center justify-center gap-6 flex-1">
           {links.map((link) => (
-            <li key={link.label}>
+            <li key={link.label} className="relative">
               <Link
                 href={`/${lang === "en" ? "" : lang}${link.href}`}
                 aria-label={link.label}
@@ -60,16 +62,20 @@ const Header = (user: any) => {
               >
                 {link.label}
               </Link>
+              {
+                pathName === `/${lang === "en" ? "" : lang}${link.href}` && (<span className="w-3/4 h-1 bg-orange-400 absolute -bottom-1 left-1/2 -translate-x-1/2"></span>)
+              }
             </li>
           ))}
         </ul>
 
         {/* Right section */}
         <div className="hidden md:flex items-center justify-end gap-x-6 flex-1">
-          <HeaderLinks />
-          <ThemedButton />
+          {/* <HeaderLinks /> */}
+          {/* <ThemedButton /> */}
           <LangSwitcher />
-          <LoginButton user={user}></LoginButton>
+          <ConnectButton>连接钱包</ConnectButton>
+          <LoginButton userData={user} lang={lang}></LoginButton>
         </div>
 
         {/* Mobile menu button */}
@@ -137,7 +143,7 @@ const Header = (user: any) => {
                   <div className="flex items-center gap-x-5 justify-between">
                     <HeaderLinks />
                     <div className="flex items-center justify-end gap-x-5">
-                      <ThemedButton />
+                      {/* <ThemedButton /> */}
                       <LangSwitcher />
                     </div>
                   </div>

@@ -1,1 +1,1 @@
-# create-contract-plugin
+# contract-strapi-plugin

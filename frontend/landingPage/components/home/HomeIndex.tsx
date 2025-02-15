@@ -1,13 +1,13 @@
-import CTA from "@/components/home/CTA";
+// import CTA from "@/components/home/CTA";
 import FAQ from "@/components/home/FAQ";
-import Feature from "@/components/home/Feature";
+// import Feature from "@/components/home/Feature";
 // import Hero from "@/components/home/Hero";
 import Hero from "@/components/home/HeroAdopt";
-import Pricing from "@/components/home/Pricing";
+// import Pricing from "@/components/home/Pricing";
 // import ScrollingLogos from "@/components/home/ScrollingLogos";
 import ScrollingLogos from "@/components/home/ScrollingAnimals";
 import SocialProof from "@/components/home/SocialProof";
-import Testimonials from "@/components/home/Testimonials";
+// import Testimonials from "@/components/home/Testimonials";
 import { defaultLocale, getDictionary } from "@/lib/i18n";
 import Steper from '@/components/home/Stepper'
 
@@ -20,7 +20,7 @@ export default async function HomeIndex({ lang }: { lang: string }) {
   return (
     <>
       {/* Hero Section */}
-      <Hero locale={dict.Hero} CTALocale={dict.CTAButton} />
+      <Hero locale={dict.Hero} CTALocale={dict.CTAButton} lang={langName}/>
       <SocialProof locale={dict.SocialProof} />
       {/* display technology stack, partners, project honors, etc. */}
       <ScrollingLogos />
@@ -30,8 +30,9 @@ export default async function HomeIndex({ lang }: { lang: string }) {
 
       {/* USP (Unique Selling Proposition) */}
       {/* <Feature id="Features" locale={dict.Feature} langName={langName} /> */}
-      <Steper id="steps" locale={dict.Steps} langName={langName}></Steper>
-
+      <div className="pt-5"></div>
+      <Steper id="steps" locale={dict.Steps} lang={langName}></Steper>
+      <div className="pt-5"></div>
       {/* Pricing */}
       {/* <Pricing id="Pricing" locale={dict.Pricing} langName={langName} /> */}
 
