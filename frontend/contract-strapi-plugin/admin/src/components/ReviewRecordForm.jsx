@@ -77,7 +77,7 @@ const CreateContractForm = ({ record }) => {
                   },
                   status: 'published'
                 }); // 更新记录
-                // console.log('更新记录 = ', recordRes)
+                console.log('更新记录 = ', recordRes)
               
                 if (recordRes.error) {
                   reject(new Error(recordRes.error.message));
@@ -87,13 +87,13 @@ const CreateContractForm = ({ record }) => {
                 await new Promise(res => setTimeout(res, 500));
         
                 const allRecordsRes = await fetchClient.get(`/contract-strapi-plugin/getRecordsByContract/api::record.record?contractId=${record.contract.documentId}`);
-                // console.log('所有记录 = ', allRecordsRes)
+                console.log('所有记录 = ', allRecordsRes)
                 if (allRecordsRes.error) {
                   reject(new Error(allRecordsRes.error.message));
                   return
                 }
                 const allRecords = allRecordsRes.data
-                // console.log('record.contract = ', record.contract)
+                console.log('record.contract = ', record.contract)
                 if (allRecords.length >= record.contract.recordTimes) {
                   // 通过次数够了，更新合同状态
                   const contractRes = await fetchClient.put(`/contract-strapi-plugin/contracts`, {
@@ -122,7 +122,6 @@ const CreateContractForm = ({ record }) => {
             },
           }
         );
-        
       });
 
       setMessage({

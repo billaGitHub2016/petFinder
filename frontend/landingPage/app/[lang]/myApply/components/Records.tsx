@@ -72,7 +72,7 @@ const Records = () => {
   const [messageApi, contextHolder] = message.useMessage();
   const account = useCurrentAccount()
 
-  const getRecords = (user: any) => {
+  const getRecords = useCallback((user: any) => {
     if (user) {
       setLoading(true);
       return fetchRecords({ userId: user.email })
@@ -89,7 +89,7 @@ const Records = () => {
           setLoading(false);
         });
     }
-  };
+  }, [messageApi]);
 
   useEffect(() => {
     getRecords(user);

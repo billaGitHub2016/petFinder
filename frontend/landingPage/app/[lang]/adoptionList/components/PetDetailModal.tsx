@@ -13,6 +13,7 @@ import { Dog, Cat, Share2 } from "lucide-react";
 import type { PetCardProps } from "./PetCard";
 import PetInfoBlock from "./PetInfoBlock";
 import { AppStoreContext } from "@/components/AppStoreProvider";
+import Link from "next/link";
 
 const PetDetailModal = (
   {
@@ -55,7 +56,9 @@ const PetDetailModal = (
           {imgArray.map((img, i) => {
             return (
               <div className="h-96 bg-gray-200" key={i}>
-                {/* <Image src={img} alt={""} fill/> */}
+                {/* <Link href={img} target="_blank" rel="noreferrer">
+                  <Image src={img} alt={""} fill/>
+                </Link> */}
                 <a href={img} target="_blank" rel="noreferrer">
                   <img src={img} alt={""} className="object-fill" />
                 </a>

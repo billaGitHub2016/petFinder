@@ -14,6 +14,7 @@ export async function GET(request: Request) {
 
   if (code) {
     const isLocalEnv = process.env.NODE_ENV === 'development'
+    console.log('~~~~~~~~~~~~~~~~~~~~~~~~isLocalEnv##########################', isLocalEnv)
     const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
     const supabase = await createClient()
     // const supabase = createRouteHandlerClient<Database>({ cookies });

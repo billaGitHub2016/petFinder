@@ -29,7 +29,7 @@ const Hero = ({ locale, CTALocale }: { locale: any; CTALocale: any }) => {
         </p>
       </section>
       {/* </motion.div> */}
-      <CTAButton locale={CTALocale}></CTAButton>
+      <CTAButton locale={CTALocale} lang="zh-CN"></CTAButton>
     </>
   );
 };

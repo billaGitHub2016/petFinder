@@ -79,7 +79,7 @@ const SubmitRecordModal = (
           txb.moveCall({
             target: `${PACKAGE_ID}::apply_for_adoption::upload_record`,
             arguments: [
-              txb.pure.id(record?.contract?.contractAddress),
+              txb.pure.id(record?.contract?.contractAddress as string),
               txb.object(CONTRACTS_CONTAINER), // contracts
               txb.pure.string(fileList.map(item => {
                 const { response } = item as any
@@ -98,7 +98,7 @@ const SubmitRecordModal = (
 
           signAndExecute(
             {
-              transaction: txb,
+              transaction: txb as any,
             },
             {
               onSuccess: async (data) => {
@@ -153,7 +153,7 @@ const SubmitRecordModal = (
       form.resetFields();
       setFileList([]);
     }
-  }, [open]);
+  }, [open, form]);
 
   const handleChange: UploadProps["onChange"] = (info) => {
     let newFileList = [...info.fileList];

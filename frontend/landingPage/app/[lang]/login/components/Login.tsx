@@ -149,7 +149,6 @@ export const Login = ({
             </div>
 
             <Button
-              isLoading={isSubmitting}
               disabled={isSubmitting}
               variant="outline"
               className="w-full"

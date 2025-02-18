@@ -70,12 +70,12 @@ const SignContractModal = (
       const txb = new Transaction();
 
       txb.setGasBudget(100000000 + parseInt(contract?.deposit + "" || "0"));
-      const [coin] = txb.splitCoins(txb.gas, [contract?.deposit]);
+      const [coin] = txb.splitCoins(txb.gas, [contract?.deposit as number]);
       await new Promise(async (resolve, reject) => {
         txb.moveCall({
           target: `${PACKAGE_ID}::apply_for_adoption::sign_adopt_contract`,
           arguments: [
-            txb.pure.id(contract?.contractAddress),
+            txb.pure.id(contract?.contractAddress as string),
             txb.object(CONTRACTS_CONTAINER), // contracts
             coin,
             txb.object(SUI_SYSTEM_STATE_OBJECT_ID),
@@ -89,7 +89,7 @@ const SignContractModal = (
 
         signAndExecute(
           {
-            transaction: txb,
+            transaction: txb as any,
           },
           {
             onSuccess: async (data) => {

@@ -22,7 +22,7 @@ const CTA = ({ locale, CTALocale }: { locale: any; CTALocale: any }) => {
           {locale.description6}
         </p>
       </div>
-      <CTAButton locale={CTALocale} />
+      <CTAButton locale={CTALocale} lang="zh-CN"/>
     </section>
   );
 };

@@ -37,7 +37,7 @@ export default function LoginButton({ userData, lang }: {
                   // <Image
                   //   height={24}
                   //   width={24}
-                  //   src={userData.user.user.user_metadata.avatar_url}
+                  //   src={user.user_metadata.avatar_url}
                   //   alt="avatar"
                   // />
                   <img

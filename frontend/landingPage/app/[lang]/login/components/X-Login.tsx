@@ -71,7 +71,7 @@ export const Login = ({
   }
 
   const protocol = host?.includes("localhost") ? "http" : "https";
-  const redirectUrl = `${protocol}://${host}/auth/callback`;
+  const redirectUrl = `${protocol}://${host}/auth/callback?next=/zh`;
   // const redirectUrl = `https://together-shrew-rested.ngrok-free.app/auth/callback`;
 
   console.log({ redirectUrl });

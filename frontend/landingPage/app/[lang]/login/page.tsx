@@ -23,6 +23,7 @@ export default async function LoginPage({
 
   const headersList = headers();
   const host = headersList.get("host");
+  console.log('host =============================', host);
 
   return (
     <div className="flex flex-col flex-1 w-full h-[calc(100vh-73px)]">
