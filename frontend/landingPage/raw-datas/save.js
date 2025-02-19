@@ -2,7 +2,7 @@ const http = require("http");
 // const data1 = require("./1.json").data.records.slice(0, 1);
 
 const allDatas = []
-for (let i = 0; i < 10; i++) {
+for (let i = 0; i < 9; i++) {
     const data = require(`./${i + 1}.json`)
     allDatas.push(...data.data.records)
 }
