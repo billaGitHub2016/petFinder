@@ -94,7 +94,7 @@ const Header = (user: any) => {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <Link
-                      href="/"
+                      href="/zh"
                       aria-label="Landing Page Boilerplate"
                       title="Landing Page Boilerplate"
                       className="inline-flex items-center"

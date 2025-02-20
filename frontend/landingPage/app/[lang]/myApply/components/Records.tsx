@@ -56,7 +56,7 @@ async function fetchRecords({ userId }: { userId: string }) {
   }
   return result.data?.data?.map((item: any) => ({
     ...item,
-    petName: item.pet.petName,
+    petName: item.pet?.petName,
   }));
 }
 

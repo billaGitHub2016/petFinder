@@ -18,7 +18,7 @@ const Feature = ({
   return (
     <section
       id={id}
-      className="flex flex-col justify-center lg:max-w-7xl md:max-w-5xl w-[95%] mx-auto md:gap-14 pt-16"
+      className="flex flex-col justify-center lg:max-w-7xl md:max-w-5xl w-[95%] mx-auto md:gap-14 pt-16 to-orange-300"
     >
       <h2 className="text-center text-white">
         <RoughNotation type="highlight" show={true} color="#F97316">
