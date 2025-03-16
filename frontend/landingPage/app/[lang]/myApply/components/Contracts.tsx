@@ -192,7 +192,7 @@ const Contracts = () => {
           { record.state === 'toSign' && <a onClick={() => {
             setCurContract(record);
             signModal.current?.setOpen(true);
-          }}>dict?.My.signContract</a> }
+          }}>{dict?.My.signContract}</a> }
         </Space>
       ),
     },
