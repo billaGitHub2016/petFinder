@@ -22,7 +22,7 @@ const Feature = ({
     >
       <h2 className="text-center text-white">
         <RoughNotation type="highlight" show={true} color="#F97316">
-          {locale.title}
+          {locale.title || "Adoption Steps"}
         </RoughNotation>
       </h2>
       <Link

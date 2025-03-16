@@ -14,6 +14,7 @@ export async function GET(request: Request) {
                 "Authorization": `Bearer ${process.env.NEXT_PUBLIC_CMS_TOKEN}`
             }
         })
+        console.log("查询宠物:", res)
         const pets = await res.json()
         return NextResponse.json({ message: "ok", data: pets }, { status: 200 })
     } catch (error) {
