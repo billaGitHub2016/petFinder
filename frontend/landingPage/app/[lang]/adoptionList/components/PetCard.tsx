@@ -2,6 +2,9 @@ import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import { Cat, Dog } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { useEffect, useState } from "react"
+import { useParams } from "next/navigation"
+import { getDictionary } from "@/lib/i18n"
 export interface PetCardProps {
   petName: string
   desc: string
@@ -30,6 +33,14 @@ export interface PetCardProps {
 }
 
 export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardProps, onClick: (params: PetCardProps) => void }) {
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
+  
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 w-full flex-shrink-0 hover:cursor-pointer" onClick={() => {
       onClick(animalInfo)
@@ -50,7 +61,7 @@ export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardPr
             )} */}
           </div>
           <p className="flex items-center text-sm">
-            <span className="text-xs px-2 py-1 bg-orange-400 text-white rounded-sm mr-1">领养区域</span>
+            <span className="text-xs px-2 py-1 bg-orange-400 text-white rounded-sm mr-1">{dict?.AdoptionCenter.area}</span>
             <span className="text-xs px-2 py-1 bg-orange-100 text-[hsl(24.6,95%,53.1%)] rounded-sm truncate max-w-52">{animalInfo.adoptNeedAddress.split(';').map(item => {
               const arr = item.split(',')
               return arr.filter(item => item.indexOf('省') === -1 && item.indexOf('无') === -1).join('·') || item
@@ -61,9 +72,9 @@ export default function PetCard({ animalInfo, onClick }: { animalInfo: PetCardPr
             <Badge variant="secondary" className="mr-1">{animalInfo.ageType}</Badge>
             <Badge variant="secondary" className="mr-1">{animalInfo.hairType}</Badge>
             <Badge variant="secondary" className="mr-1">{animalInfo.hairLength}</Badge>
-            <Badge variant="secondary" className="mr-1">{animalInfo.isVaccine === 1 ? '已' : '未'}疫苗</Badge>
-            <Badge variant="secondary" className="mr-1">{animalInfo.isDeworm === 1 ? '已' : '未'}驱虫</Badge>
-            <Badge variant="secondary" className="mr-1">{animalInfo.isNeuter === 1 ? '已' : '未'}绝育</Badge>
+            <Badge variant="secondary" className="mr-1">{animalInfo.isVaccine === 1 ? dict?.AdoptionCenter.has : dict?.AdoptionCenter.not}{dict?.AdoptionCenter.vaccine}</Badge>
+            <Badge variant="secondary" className="mr-1">{animalInfo.isDeworm === 1 ? dict?.AdoptionCenter.has : dict?.AdoptionCenter.not}{dict?.AdoptionCenter.anthelmintic}</Badge>
+            <Badge variant="secondary" className="mr-1">{animalInfo.isNeuter === 1 ? dict?.AdoptionCenter.has : dict?.AdoptionCenter.not}{dict?.AdoptionCenter.sterilization}</Badge>
           </div>
           <p className="text-gray-600 text-sm leading-relaxed">{animalInfo.petDescription}</p>
         </div>

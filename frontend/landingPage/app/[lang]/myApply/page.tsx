@@ -1,6 +1,6 @@
 "use client";
-import { useContext } from "react";
-import { redirect } from "next/navigation";
+import { useContext, useEffect, useState } from "react";
+import { redirect, useParams } from "next/navigation";
 import { Tabs, Modal } from "antd";
 import type { TabsProps } from "antd";
 import { ExclamationCircleFilled } from "@ant-design/icons";
@@ -8,33 +8,38 @@ import { AppStoreContext } from "@/components/AppStoreProvider";
 import Applies from "./components/Applies";
 import Contracts from "./components/Contracts";
 import Records from "./components/Records";
-
-const { confirm } = Modal;
-
-const items: TabsProps["items"] = [
-  {
-    key: "1",
-    label: "我的申请",
-    children: <Applies />,
-  },
-  {
-    key: "2",
-    label: "我的合同",
-    children: <Contracts></Contracts>,
-  },
-  {
-    key: "3",
-    label: "回访记录",
-    children: <Records></Records>,
-  },
-];
+import { getDictionary } from "@/lib/i18n";
 
 export default function MyApply() {
   const storeData: any = useContext(AppStoreContext);
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+      getDictionary(lang).then(setDict);
+    }, [lang]);
 
-    if (!storeData.user) {
-      redirect("/zh/login");
-    }
+  const items: TabsProps["items"] = [
+    {
+      key: "1",
+      label: dict?.My.myApply,
+      children: <Applies />,
+    },
+    {
+      key: "2",
+      label: dict?.My.myContract,
+      children: <Contracts></Contracts>,
+    },
+    {
+      key: "3",
+      label: dict?.My.visitLog,
+      children: <Records></Records>,
+    },
+  ];
+
+  if (!storeData.user) {
+    redirect("/zh/login");
+  }
 
   // if (!storeData.user) {
   //   confirm({

@@ -10,6 +10,8 @@ import type { DataType as Contract } from "./Contracts";
 import PetDetailModal from "../../adoptionList/components/PetDetailModal";
 import SubmitRecordModal from "./SubmitRecordModal";
 import { useCurrentAccount } from "@mysten/dapp-kit";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 export interface DataType {
   id: string;
@@ -27,39 +29,6 @@ export interface DataType {
   imgs: any[];
 }
 
-async function fetchRecords({ userId }: { userId: string }) {
-  const query = qs.stringify(
-    {
-      filters: {
-        userId: {
-          $eq: userId,
-        },
-      },
-      populate: "*",
-      pagination: {
-        page: 1,
-        pageSize: 100,
-      },
-    },
-    {
-      encodeValuesOnly: true, // prettify URL
-    }
-  );
-  const response = await fetch(`/api/records?${query}`);
-  if (!response.ok) {
-    throw new Error("查询回访记录失败");
-  }
-
-  const result = await response.json();
-  if (result.error) {
-    throw new Error(result.error.message);
-  }
-  return result.data?.data?.map((item: any) => ({
-    ...item,
-    petName: item.pet?.petName,
-  }));
-}
-
 const Records = () => {
   const { user } = useContext(AppStoreContext) as any;
   // console.log("records user = ", user);
@@ -70,26 +39,68 @@ const Records = () => {
   const submitModal = useRef<{ setOpen: Function }>(null);
   const detailModal = useRef<{ setOpen: Function }>(null);
   const [messageApi, contextHolder] = message.useMessage();
-  const account = useCurrentAccount()
+  const account = useCurrentAccount();
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
 
-  const getRecords = useCallback((user: any) => {
-    if (user) {
-      setLoading(true);
-      return fetchRecords({ userId: user.email })
-        .then((res) => {
-          setData(res);
-        })
-        .catch((e) => {
-          messageApi.open({
-            type: "error",
-            content: e.message,
-          });
-        })
-        .finally(() => {
-          setLoading(false);
-        });
+  async function fetchRecords({ userId }: { userId: string }) {
+    const query = qs.stringify(
+      {
+        filters: {
+          userId: {
+            $eq: userId,
+          },
+        },
+        populate: "*",
+        pagination: {
+          page: 1,
+          pageSize: 100,
+        },
+      },
+      {
+        encodeValuesOnly: true, // prettify URL
+      }
+    );
+    const response = await fetch(`/api/records?${query}`);
+    if (!response.ok) {
+      throw new Error(dict?.My.queryFollowupFail);
     }
-  }, [messageApi]);
+
+    const result = await response.json();
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+    return result.data?.data?.map((item: any) => ({
+      ...item,
+      petName: item.pet?.petName,
+    }));
+  }
+
+  const getRecords = useCallback(
+    (user: any) => {
+      if (user) {
+        setLoading(true);
+        return fetchRecords({ userId: user.email })
+          .then((res) => {
+            setData(res);
+          })
+          .catch((e) => {
+            messageApi.open({
+              type: "error",
+              content: e.message,
+            });
+          })
+          .finally(() => {
+            setLoading(false);
+          });
+      }
+    },
+    [messageApi]
+  );
 
   useEffect(() => {
     getRecords(user);
@@ -101,12 +112,12 @@ const Records = () => {
 
   const columns: TableProps<DataType>["columns"] = [
     {
-      title: "回访编号",
+      title: dict?.My.followUpCode, // "回访编号",
       dataIndex: "id",
       key: "id",
     },
     {
-      title: "宠物名",
+      title: dict?.My.petName, // "宠物名",
       dataIndex: "petName",
       key: "petName",
       render: (_, rowData) => {
@@ -125,12 +136,12 @@ const Records = () => {
       },
     },
     {
-      title: "回访要求",
+      title: dict?.My.followUpDemand, // "回访要求",
       dataIndex: "content",
       key: "content",
     },
     {
-      title: "提交日期",
+      title: dict?.My.submitDate, // "提交日期",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (_, { submitDate }) => {
@@ -140,15 +151,15 @@ const Records = () => {
       },
     },
     {
-      title: "审核结果",
+      title: dict?.My.reviewResult, // "审核结果",
       dataIndex: "result",
       key: "result",
       render: (_, { result }) => {
         const stateMap: { [key: string]: string } = {
-          Pass: "通过",
-          Reject: "未通过",
-          Abandon: "已废弃",
-          InReview: "审核中",
+          Pass: dict?.My.pass, // "通过",
+          Reject: dict?.My.fail, // "未通过",
+          Abandon: dict?.My.abandoned, // "已废弃",
+          InReview: dict?.My.inReview // "审核中",
         };
         let color = "geekblue";
         if (result === "Pass") {
@@ -160,22 +171,22 @@ const Records = () => {
       },
     },
     {
-      title: "审核备注",
+      title: dict?.My.remark, // "审核备注",
       dataIndex: "comment",
       key: "comment",
     },
     {
-      title: "操作",
+      title: dict?.My.operation, // "操作",
       key: "action",
       render: (_, record) => (
         <Space size="middle">
           {!record.submitDate && (
             <a
               onClick={() => {
-                if(!account) {
+                if (!account) {
                   messageApi.open({
                     type: "warning",
-                    content: "请先连接钱包",
+                    content: dict?.AdoptionCenter.connectWallet, // "请先连接钱包",
                   });
                   return;
                 }
@@ -183,7 +194,8 @@ const Records = () => {
                 submitModal.current?.setOpen(true);
               }}
             >
-              提交记录
+              {/* 提交记录 */}
+              {dict?.My.submit}
             </a>
           )}
         </Space>
@@ -196,7 +208,9 @@ const Records = () => {
       {contextHolder}
       <Button
         icon={<RedoOutlined />}
-        onClick={() => {getRecords(user)}}
+        onClick={() => {
+          getRecords(user);
+        }}
         className="mb-3"
       />
       <Table<DataType>
@@ -210,10 +224,11 @@ const Records = () => {
         animalInfo={petInfo}
         hasButton={false}
       ></PetDetailModal>
-      <SubmitRecordModal ref={submitModal}
+      <SubmitRecordModal
+        ref={submitModal}
         record={recordInfo}
-        onSuccess={onSuccess}>
-      </SubmitRecordModal>
+        onSuccess={onSuccess}
+      ></SubmitRecordModal>
     </div>
   );
 };

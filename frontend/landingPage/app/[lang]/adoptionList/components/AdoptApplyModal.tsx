@@ -11,6 +11,8 @@ import {
 import { useCurrentAccount } from "@mysten/dapp-kit";
 import { AppStoreContext } from "@/components/AppStoreProvider";
 import type { PetCardProps } from "./PetCard";
+import { getDictionary } from "@/lib/i18n";
+import { useParams } from "next/navigation";
 
 type LayoutType = Parameters<typeof Form>[0]["layout"];
 
@@ -20,21 +22,6 @@ type FieldType = {
   selfStatus?: string;
   bugget?: string;
 };
-
-async function createApply(params: any) {
-  const response = await fetch(`/api/petApply`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(params),
-  });
-  if (!response.ok) {
-    throw new Error("提交申请失败");
-  }
-  const result = await response.json();
-  return result.data;
-}
 
 const AdoptApplyModal = (
   {
@@ -55,9 +42,30 @@ const AdoptApplyModal = (
   const [formLayout, setFormLayout] = useState<LayoutType>("vertical");
   const { user } = useContext(AppStoreContext) as any;
   const [messageApi, contextHolder] = message.useMessage();
-
-  console.log("user = ", user);
   const account = useCurrentAccount();
+
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
+
+  const createApply = async (params: any) => {
+    const response = await fetch(`/api/petApply`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+      throw new Error(dict?.AdoptionCenter.submitApplyFail || "提交申请失败");
+    }
+    const result = await response.json();
+    return result.data;
+  }
 
   const onSubmit: FormProps<FieldType>["onFinish"] = (values) => {
     // console.log("Success:", values);
@@ -77,7 +85,7 @@ const AdoptApplyModal = (
       .then(() => {
         messageApi.open({
           type: "success",
-          content: "提交申请成功",
+          content: dict.AdoptionCenter.submitApplySuccess // "提交申请成功",
         })
         form.resetFields();
         setOpen(false);
@@ -94,33 +102,33 @@ const AdoptApplyModal = (
   };
 
   const healthOptions = [
-    { label: "健康", value: "健康" },
-    { label: "存在残疾", value: "存在残疾" },
-    { label: "患有慢性病", value: "患有慢性病" },
+    { label: dict?.AdoptionCenter.health, value: "健康" },
+    { label: dict?.AdoptionCenter.disability, value: "存在残疾" },
+    { label: dict?.AdoptionCenter.chronicDiseases, value: "患有慢性病" },
   ];
   const experienceOptions = [
-    { label: "现在有，想再领养一只", value: "现在有，想再领养一只" },
-    { label: "过去有，已经过世", value: "过去有，已经过世" },
-    { label: "过去有，后来走丢了", value: "过去有，后来走丢了" },
-    { label: "没有养过", value: "没有养过" },
-    { label: "宠物送人/放生了", value: "宠物送人/放生了" },
+    { label: dict?.AdoptionCenter.oneMore, value: "现在有，想再领养一只" },
+    { label: dict?.AdoptionCenter.oneBefore, value: "过去有，已经过世" },
+    { label: dict?.AdoptionCenter.oneLost, value: "过去有，后来走丢了" },
+    { label: dict?.AdoptionCenter.noBefore, value: "没有养过" },
+    { label: dict?.AdoptionCenter.oneGive, value: "宠物送人/放生了" },
   ];
   const statusOptions = [
-    { label: "在校学生", value: "在校学生" },
-    { label: "在职人员", value: "在职人员" },
-    { label: "离职人员", value: "离职人员" },
-    { label: "退休人员", value: "退休人员" },
+    { label: dict?.AdoptionCenter.student, value: "在校学生" },
+    { label: dict?.AdoptionCenter.worker, value: "在职人员" },
+    { label: dict?.AdoptionCenter.retire, value: "离职人员" },
+    { label: dict?.AdoptionCenter.unemployed, value: "退休人员" },
   ];
   const buggetOptions = [
-    { label: "500元-700元", value: "500-700" },
-    { label: "700元-1000元", value: "700-1000" },
-    { label: "1000元-1500元", value: "1000-1500" },
-    { label: "1500元以上", value: "1500以上" },
+    { label: dict?.AdoptionCenter['500'], value: "500-700" },
+    { label: dict?.AdoptionCenter['700'], value: "700-1000" },
+    { label: dict?.AdoptionCenter['1000'], value: "1000-1500" },
+    { label: dict?.AdoptionCenter['1500'], value: "1500以上" },
   ];
 
   return (
     <Modal
-      title={<p>填写申请表</p>}
+      title={<p>{dict?.AdoptionCenter.fillForm}</p>}
       open={open}
       footer={null}
       width="700px"
@@ -138,43 +146,43 @@ const AdoptApplyModal = (
         >
           <div className="pb-4">
             <Form.Item
-              label="您能接受领养动物的健康状况为(多选)"
+              label={dict?.AdoptionCenter.healthStatus}
               name="health"
-              rules={[{ required: true, message: "请填写必填项" }]}
+              rules={[{ required: true, message: dict?.AdoptionCenter.isRequired }]}
             >
               <Checkbox.Group options={healthOptions} defaultValue={[]} />
             </Form.Item>
           </div>
           <div className="pb-4">
             <Form.Item
-              label="过去是否有养宠经验"
+              label={dict?.AdoptionCenter.hasPetBefore}
               name="experience"
-              rules={[{ required: true, message: "请填写必填项" }]}
+              rules={[{ required: true, message: dict?.AdoptionCenter.isRequired }]}
             >
               <Radio.Group options={experienceOptions} />
             </Form.Item>
           </div>
           <div className="pb-4">
             <Form.Item
-              label="您目前的身份"
+              label={dict?.AdoptionCenter.identify}
               name="selfStatus"
-              rules={[{ required: true, message: "请填写必填项" }]}
+              rules={[{ required: true, message: dict?.AdoptionCenter.isRequired }]}
             >
               <Radio.Group options={statusOptions} />
             </Form.Item>
           </div>
           <div className="pb-4">
             <Form.Item
-              label="您的养宠预算为(元/月 不计算疫苗零食玩具绝育等额外费用)"
+              label={dict?.AdoptionCenter.bugget}
               name="bugget"
-              rules={[{ required: true, message: "请填写必填项" }]}
+              rules={[{ required: true, message: dict?.AdoptionCenter.isRequired }]}
             >
               <Radio.Group options={buggetOptions} />
             </Form.Item>
           </div>
           <Form.Item>
             <Button type="primary" htmlType="submit" loading={loading}>
-              提交
+              {dict?.AdoptionCenter.submit}
             </Button>
           </Form.Item>
         </Form>

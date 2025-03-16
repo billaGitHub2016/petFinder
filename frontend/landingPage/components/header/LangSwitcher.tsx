@@ -31,11 +31,12 @@ export const LangSwitcher = () => {
       newPath = pathSegments.join("/");
     }
 
-    if (value === defaultLocale) {
-      router.push(`/${newPath}`);
-    } else {
-      router.push(`/${value}/${newPath}`);
-    }
+    // if (value === defaultLocale) {
+    //   router.push(`/${newPath}`);
+    // } else {
+    //   router.push(`/${value}/${newPath}`);
+    // }
+    router.push(`/${value}/${newPath}`);
   };
 
   return (

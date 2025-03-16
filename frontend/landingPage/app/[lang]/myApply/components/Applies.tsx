@@ -6,6 +6,8 @@ import type { TableProps } from "antd";
 import qs from "qs";
 import { AppStoreContext } from "@/components/AppStoreProvider";
 import PetDetailModal from "../../adoptionList/components/PetDetailModal";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 interface DataType {
   id: string;
@@ -59,6 +61,12 @@ const Applies = () => {
   const [data, setData] = useState<DataType[]>([]);
   const detailModal = useRef<{ setOpen: Function }>(null);
   const [petInfo, setPetInfo] = useState(null);
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+      getDictionary(lang).then(setDict);
+    }, [lang]);
   
   const getContracts = (user: any) => {
     if (user) {
@@ -75,12 +83,12 @@ const Applies = () => {
 
   const columns: TableProps<DataType>["columns"] = [
     {
-      title: "申请编号",
+      title: dict?.My.applyCode, // "申请编号"
       dataIndex: "id",
       key: "id",
     },
     {
-      title: "宠物名",
+      title: dict?.My.petName, // "宠物名",
       dataIndex: "petName",
       key: "petName",
       render: (_, rowData) => {
@@ -95,7 +103,7 @@ const Applies = () => {
       },
     },
     {
-      title: "申请日期",
+      title: dict?.My.applyDate, // "申请日期",
       dataIndex: "createdAt",
       key: "createdAt",
       render: (_, { createdAt }) => {
@@ -103,7 +111,7 @@ const Applies = () => {
       },
     },
     {
-      title: "审核状态",
+      title: dict?.My.reviewStatus, // "审核状态",
       dataIndex: "state",
       key: "state",
       render: (_, { state }) => {
@@ -116,9 +124,9 @@ const Applies = () => {
           color = "volcano";
         }
         const stateMap = {
-          InReview: "审核中",
-          Pass: "通过",
-          Reject: "拒绝",
+          InReview: dict?.My.inReview, // "审核中",
+          Pass: dict?.My.pass,// "通过",
+          Reject: dict?.My.reject // "拒绝",
         };
         return (
           <>

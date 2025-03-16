@@ -6,24 +6,32 @@ import { MenuIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CgClose } from "react-icons/cg";
 import { ThemedButton } from "../ThemedButton";
 import LoginButton from "./LoginButton";
 import { ConnectButton } from "@mysten/dapp-kit";
+import { defaultLocale, getDictionary } from "@/lib/i18n";
 
 const links = [
-  { label: "首页", href: "" },
-  { label: "领养中心", href: "/adoptionList" },
+  { label: "home", href: "" },
+  { label: "adoptionCenter", href: "adoptionList" },
   // { label: "Testimonials", href: "#Testimonials" },
-  { label: "我的", href: "/myApply" },
+  { label: "my", href: "/myApply" },
 ];
 
 const Header = (user: any) => {
   // console.log('user header = ', user);
   const params = useParams();
   const lang = params.lang as string;
+  // console.log("lang = ", lang);
   const pathName = usePathname();
+  // console.log("pathName = ", pathName);
+  const [dict, setDict] = useState<any>();
+
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   return (
@@ -55,16 +63,18 @@ const Header = (user: any) => {
           {links.map((link) => (
             <li key={link.label} className="relative">
               <Link
-                href={`/${lang === "en" ? "" : lang}${link.href}`}
-                aria-label={link.label}
+                href={`/${lang === "en" || !lang ? "en/" : lang + "/"}${
+                  link.href
+                }`}
+                aria-label={dict?.Links[link.label]}
                 title={link.label}
                 className="tracking-wide transition-colors duration-200 font-normal"
               >
-                {link.label}
+                {dict?.Links[link.label]}
               </Link>
-              {
-                pathName === `/${lang === "en" ? "" : lang}${link.href}` && (<span className="w-3/4 h-1 bg-orange-400 absolute -bottom-1 left-1/2 -translate-x-1/2"></span>)
-              }
+              {((link.href && pathName.indexOf(link.href) > -1) || (link.href === '' && (pathName === "/en" || pathName === "/zh" || pathName === "/"))) && (
+                <span className="w-3/4 h-1 bg-orange-400 absolute -bottom-1 left-1/2 -translate-x-1/2"></span>
+              )}
             </li>
           ))}
         </ul>
@@ -74,7 +84,7 @@ const Header = (user: any) => {
           {/* <HeaderLinks /> */}
           {/* <ThemedButton /> */}
           <LangSwitcher />
-          <ConnectButton>连接钱包</ConnectButton>
+          <ConnectButton></ConnectButton>
           <LoginButton userData={user} lang={lang}></LoginButton>
         </div>
 

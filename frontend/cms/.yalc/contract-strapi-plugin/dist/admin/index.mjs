@@ -6305,7 +6305,7 @@ const CreateContractForm$1 = ({ petApply }) => {
                   resolve();
                 }
               } else {
-                reject(new Error("交易失败: " + data.digest));
+                reject(new Error("Transaction failed: " + data.digest));
               }
             },
             onError: (err) => {
@@ -6317,7 +6317,7 @@ const CreateContractForm$1 = ({ petApply }) => {
       });
       setMessage({
         type: "success",
-        msg: "合同创建成功"
+        msg: "Contract created successfully"
       });
     } catch (e2) {
       console.error(e2);
@@ -6339,12 +6339,12 @@ const CreateContractForm$1 = ({ petApply }) => {
     message.msg && /* @__PURE__ */ jsx(Alert, { title: "Tips", variant: message.type, children: message.msg }),
     /* @__PURE__ */ jsxs(Box, { paddingTop: 2, paddingBottom: 2, children: [
       /* @__PURE__ */ jsx(Box, { paddingTop: 2, children: /* @__PURE__ */ jsxs(Field.Root, { children: [
-        /* @__PURE__ */ jsx(Field.Label, { children: "押金数量(SUI)" }),
+        /* @__PURE__ */ jsx(Field.Label, { children: "Deposit(SUI)" }),
         /* @__PURE__ */ jsx(
           Field.Input,
           {
             type: "text",
-            placeholder: "填写押金(SUI)",
+            placeholder: "Input deposit amount(SUI)",
             onChange: (e) => setDeposit(e.target.value),
             value: deposit
           }
@@ -6352,12 +6352,12 @@ const CreateContractForm$1 = ({ petApply }) => {
         /* @__PURE__ */ jsx(Field.Error, {})
       ] }) }),
       /* @__PURE__ */ jsx(Box, { paddingTop: 2, children: /* @__PURE__ */ jsxs(Field.Root, { children: [
-        /* @__PURE__ */ jsx(Field.Label, { children: "回访次数" }),
+        /* @__PURE__ */ jsx(Field.Label, { children: "Number of follow-up visits" }),
         /* @__PURE__ */ jsx(
           Field.Input,
           {
             type: "text",
-            placeholder: "填写回访次数",
+            placeholder: "Input number of follow-up visits",
             onChange: (e) => setRecordTimes(e.target.value),
             value: recordTimes
           }
@@ -6365,7 +6365,7 @@ const CreateContractForm$1 = ({ petApply }) => {
         /* @__PURE__ */ jsx(Field.Error, {})
       ] }) })
     ] }),
-    /* @__PURE__ */ jsx(Button, { type: "submit", disabled: loading, onClick: handleSubmit, children: loading ? "提交中..." : "创建合同" })
+    /* @__PURE__ */ jsx(Button, { type: "submit", disabled: loading, onClick: handleSubmit, children: loading ? "Submitting..." : "Create Contract" })
   ] });
 };
 const CreateContractForm = ({ record: record2 }) => {
@@ -6429,6 +6429,7 @@ const CreateContractForm = ({ record: record2 }) => {
                   },
                   status: "published"
                 });
+                console.log("更新记录 = ", recordRes);
                 if (recordRes.error) {
                   reject(new Error(recordRes.error.message));
                   return;
@@ -6451,14 +6452,14 @@ const CreateContractForm = ({ record: record2 }) => {
                     },
                     status: "published"
                   });
-                  console.log("更新合同状态 = ", contractRes);
                   if (contractRes.error) {
                     reject(new Error(contractRes.error.message));
                     return;
                   }
                 }
+                resolve("");
               } else {
-                reject(new Error("交易失败: " + data.digest));
+                reject(new Error("Transaction failed: " + data.digest));
               }
             },
             onError: (err) => {
@@ -6467,11 +6468,10 @@ const CreateContractForm = ({ record: record2 }) => {
             }
           }
         );
-        resolve("");
       });
       setMessage({
         type: "success",
-        msg: "合同创建成功"
+        msg: "审核成功"
       });
     } catch (e2) {
       console.error(e2);
@@ -6493,19 +6493,19 @@ const CreateContractForm = ({ record: record2 }) => {
     message.msg && /* @__PURE__ */ jsx(Alert, { title: "Tips", variant: message.type, children: message.msg }),
     /* @__PURE__ */ jsxs(Box, { paddingTop: 2, paddingBottom: 2, children: [
       /* @__PURE__ */ jsx(Box, { paddingTop: 2, children: /* @__PURE__ */ jsxs(Field.Root, { children: [
-        /* @__PURE__ */ jsx(Field.Label, { children: "审核结果" }),
+        /* @__PURE__ */ jsx(Field.Label, { children: "Reivew result" }),
         /* @__PURE__ */ jsxs(SingleSelect, { onChange: setResult, value: result, children: [
-          /* @__PURE__ */ jsx(SingleSelectOption, { value: "Pass", children: "通过" }),
-          /* @__PURE__ */ jsx(SingleSelectOption, { value: "Reject", children: "不通过" })
+          /* @__PURE__ */ jsx(SingleSelectOption, { value: "Pass", children: "Pass" }),
+          /* @__PURE__ */ jsx(SingleSelectOption, { value: "Reject", children: "Fail" })
         ] }),
         /* @__PURE__ */ jsx(Field.Error, {})
       ] }) }),
       /* @__PURE__ */ jsx(Box, { paddingTop: 2, children: /* @__PURE__ */ jsxs(Field.Root, { children: [
-        /* @__PURE__ */ jsx(Field.Label, { children: "评论" }),
+        /* @__PURE__ */ jsx(Field.Label, { children: "Comment" }),
         /* @__PURE__ */ jsx(
           Textarea,
           {
-            placeholder: "请填写审核评论",
+            placeholder: "Input comment",
             name: "comment",
             onChange: (v) => {
               setComment(v.target.value);
@@ -6515,7 +6515,7 @@ const CreateContractForm = ({ record: record2 }) => {
         /* @__PURE__ */ jsx(Field.Error, {})
       ] }) })
     ] }),
-    /* @__PURE__ */ jsx(Button, { type: "submit", disabled: loading, onClick: handleSubmit, children: loading ? "提交中..." : "提交" })
+    /* @__PURE__ */ jsx(Button, { type: "submit", disabled: loading, onClick: handleSubmit, children: loading ? "Submiting..." : "Submit" })
   ] });
 };
 const HomePage = () => {

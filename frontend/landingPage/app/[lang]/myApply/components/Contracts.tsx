@@ -9,6 +9,8 @@ import PetDetailModal from "../../adoptionList/components/PetDetailModal";
 import { PetCardProps } from "../../adoptionList/components/PetCard";
 import { SUI_MIST } from '@/config/constants'
 import SignContractModal from "./SignContractModal";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 export interface DataType {
   id: string;
@@ -75,6 +77,13 @@ const Contracts = () => {
   const signModal = useRef<{ setOpen: Function }>(null);
   const detailModal = useRef<{ setOpen: Function }>(null);
 
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+      getDictionary(lang).then(setDict);
+    }, [lang]);
+
   const getContracts = (user: any) => {
     if (user) {
       setLoading(true);
@@ -95,12 +104,12 @@ const Contracts = () => {
 
   const columns: TableProps<DataType>["columns"] = [
     {
-      title: "合同编号",
+      title: dict?.My.contractCode, // "合同编号",
       dataIndex: "id",
       key: "id",
     },
     {
-      title: "宠物名",
+      title: dict?.My.petName,
       dataIndex: "petName",
       key: "petName",
       render: (_, rowData) => {
@@ -115,7 +124,7 @@ const Contracts = () => {
       },
     },
     {
-      title: "押金(SUI)",
+      title: dict?.My.deposit, // "押金(SUI)",
       dataIndex: "deposit",
       key: "deposit",
       render: (_, {deposit}) => {
@@ -125,12 +134,12 @@ const Contracts = () => {
       },
     },
     {
-      title: "回访总数",
+      title: dict?.My.totalFlowUp, // "回访总数",
       dataIndex: "recordTimes",
       key: "recordTimes",
     },
     {
-      title: "签署日期",
+      title: dict?.My.signDate, // "签署日期",
       dataIndex: "signDate",
       key: "signDate",
       render: (_, { signDate }) => {
@@ -140,7 +149,7 @@ const Contracts = () => {
       }
     },
     {
-      title: "完成日期",
+      title: dict?.My.completeDate, // "完成日期",
       dataIndex: "finishDate",
       key: "finishDate",
       render: (_, { finishDate }) => {
@@ -150,15 +159,15 @@ const Contracts = () => {
       }
     },
     {
-      title: "合同状态",
+      title: dict?.My.contractStatus, // "合同状态",
       dataIndex: "state",
       key: "state",
       render: (_, { state }) => {
         const stateMap: { [key: string]: string } = {
-          toSign: "待签署",
-          complete: "已完成",
-          termination: "已终止",
-          inProgress: "进行中",
+          toSign: dict?.My.toSign, // "待签署",
+          complete: dict?.My.completed, // "已完成",
+          termination: dict?.My.stoped, // "已终止",
+          inProgress: dict?.My.inProgress, // "进行中",
         };
         let color = "geekblue";
         if (state === "toSign") {
@@ -176,14 +185,14 @@ const Contracts = () => {
       },
     },
     {
-      title: 'Action',
+      title: dict?.My.operation,
       key: 'action',
       render: (_, record) => (
         <Space size="middle">
           { record.state === 'toSign' && <a onClick={() => {
             setCurContract(record);
             signModal.current?.setOpen(true);
-          }}>签署合同</a> }
+          }}>dict?.My.signContract</a> }
         </Space>
       ),
     },

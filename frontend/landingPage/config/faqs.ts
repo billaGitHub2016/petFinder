@@ -1,18 +1,18 @@
 export const FAQS_EN = [
   { 
-    title: "怎样领养动物？",
+    title: "How to adopt animals?",
     content:
-      "填写领养申请后，平台工作人员将与您联系，核实信息后开始领养流程。",
+      "After filling out the adoption application, platform staff will contact you to verify the information, and then begin the adoption process.",
   },
   { 
-    title: "领养押金要怎样退还？",
+    title: "How can I refund the adoption deposit?",
     content:
-      "回访结果全部通过，则全额退还。如果有未通过，则扣除未通过部分押金后退还。",
+      "If all the follow-up results pass, the deposit will be fully refunded. If there are any failures, the deposit for the failed part will be deducted before the refund.",
   },
   {
-    title: "中途退养会有什么后果？",
+    title: "What are the consequences of adopting in the middle?",
     content:
-      "中途退养的情况，不退还押金，并且会在社交平台曝光退养行为。",
+      "If you decide to adopt in the middle, the deposit will not be refunded, and the behavior of abandonment will be exposed on social media platforms.",
   }
 ];
 

@@ -18,6 +18,8 @@ import {
 import { Transaction } from "@mysten/sui/transactions";
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import { SUI_MIST, PACKAGE_ID, CONTRACTS_CONTAINER } from "@/config/constants";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 type FieldType = {
   submitText?: string;
@@ -60,13 +62,19 @@ const SubmitRecordModal = (
         },
       }),
   });
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
 
   const [form] = Form.useForm();
   const onSubmit = () => {
     if (!account) {
       messageApi.open({
         type: "warning",
-        content: "请先连接钱包",
+        content: dict?.AdoptionCenter.connectWallet,
       });
       return;
     }
@@ -118,21 +126,21 @@ const SubmitRecordModal = (
                     }),
                   });
                   if (!response.ok) {
-                    reject(new Error("提交回访记录失败"));        
+                    reject(new Error(dict?.My.submitLogFail)); // 提交回访记录失败
                   }
                   messageApi.open({
                     type: "success",
-                    content: "提交成功",
+                    content: dict?.My.submitSuccess // "提交成功",
                   });
                   setOpen(false);
                   onSuccess?.();
                   resolve('');
                 } else {
-                  reject(new Error("交易失败, digest: " + data.digest));
+                  reject(new Error(dict?.My.transactionFail + "digest: " + data.digest));
                 }
               },
               onError: (err) => {
-                console.error("交易失败: " + err);
+                console.error(dict?.My.transactionFail + ": " + err);
                 reject(err);
               },
             }
@@ -186,8 +194,8 @@ const SubmitRecordModal = (
       maskClosable={false}
       onCancel={() => setOpen(false)}
       onOk={onSubmit}
-      okText="提交"
-      cancelText="取消"
+      okText={dict?.AdoptionCenter.submit}
+      cancelText={dict?.My.cancel}
       width={650}
       className="mt-5"
     >
@@ -202,7 +210,7 @@ const SubmitRecordModal = (
         className="mt-3"
         form={form}
       >
-        <Form.Item<FieldType> label="图片附件" name="imgs" rules={[]}>
+        <Form.Item<FieldType> label={dict?.My.images} name="imgs" rules={[]}>
           <Upload
             action="/api/upload"
             listType="picture"
@@ -216,9 +224,9 @@ const SubmitRecordModal = (
           </Upload>
         </Form.Item>
         <Form.Item<FieldType>
-          label="描述"
+          label={dict?.My.desc}
           name="submitText"
-          rules={[{ required: true, message: "请输入描述信息" }]}
+          rules={[{ required: true, message: dict?.My.inputDesc }]}
         >
           <TextArea rows={4} />
         </Form.Item>

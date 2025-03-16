@@ -14,6 +14,8 @@ import type { PetCardProps } from "./PetCard";
 import PetInfoBlock from "./PetInfoBlock";
 import { AppStoreContext } from "@/components/AppStoreProvider";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 const PetDetailModal = (
   {
@@ -37,11 +39,18 @@ const PetDetailModal = (
   const imgArray =
     (animalInfo && animalInfo.imgs && animalInfo.imgs.split(",")) || [];
   const storeData = useContext(AppStoreContext);
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
   // console.log("user in child = ", storeData);
 
   return (
     <Modal
-      title={<p>宠物详情</p>}
+      title={<p>{dict?.AdoptionCenter.petDetail}</p>}
       loading={loading}
       open={open}
       footer={null}
@@ -114,30 +123,30 @@ const PetDetailModal = (
           </div>
         </div>
         <div className="mt-5">
-          <p className="font-bold text-lg mb-3">详细信息</p>
+          <p className="font-bold text-lg mb-3">{dict?.AdoptionCenter.detailInfo}</p>
           <div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">宠物状态</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.petStatus}</div>
               <div>{animalInfo && animalInfo.adoptStatus}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">发布时间</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.publishDate}</div>
               <div>{animalInfo && new Date(animalInfo.infoUpdateTime).toLocaleString()}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">性格</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.character}</div>
               <div>{animalInfo && animalInfo.characterDescription}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">是否接受合租</div>
-              <div>{animalInfo && animalInfo.isShared === 0 ? '不接受' : '接受'}</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.sharedRental}</div>
+              <div>{animalInfo && animalInfo.isShared === 0 ? dict?.AdoptionCenter.noAccept : dict?.AdoptionCenter.accept}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">宠物所在地址</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.petAddress}</div>
               <div>{animalInfo && animalInfo.address}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">领养地址要求</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.addressRequired}</div>
               <div>
                 {animalInfo &&
                   animalInfo.adoptNeedAddress
@@ -147,15 +156,15 @@ const PetDetailModal = (
               </div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">TA的简介</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.sumary}</div>
               <div>{animalInfo && animalInfo.petDescription}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">领养条件</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.condition}</div>
               <div>{animalInfo && animalInfo.adoptConditions}</div>
             </div>
             <div className="grid grid-cols-[25%_1fr] text-base mb-3">
-              <div className="text-gray-600">救助故事</div>
+              <div className="text-gray-600">{dict?.AdoptionCenter.story}</div>
               <div>{animalInfo && animalInfo.sourceRemark}</div>
             </div>
           </div>
@@ -163,7 +172,7 @@ const PetDetailModal = (
       </div>
 
       { hasButton && (<div className="absolute bottom-0 left-0 w-full">
-        <AdoptButtonGroup onAdopt={onAdopt}></AdoptButtonGroup>
+        <AdoptButtonGroup onAdopt={onAdopt} dict={dict}></AdoptButtonGroup>
       </div>)}
     </Modal>
   );
@@ -171,17 +180,19 @@ const PetDetailModal = (
 
 const AdoptButtonGroup = ({
   onAdopt,
+  dict
 }: {
   onAdopt?: () => void;
+  dict?: any;
 }) => {
   return (
     <div className="flex justify-between items-center w-full pt-1 pb-1 px-6 border-t-1 border-neutral-200 bg-white">
       <div className="flex flex-col items-center gap-1 text-gray-400 cursor-pointer">
         <Share2 />
-        <span className="text-black">分享</span>
+        <span className="text-black">{dict?.AdoptionCenter.share}</span>
       </div>
       <Button type="primary" size="large" shape="round" onClick={onAdopt}>
-        申请领养资质
+      {dict?.AdoptionCenter.applyAdoption}
       </Button>
     </div>
   );

@@ -19,6 +19,8 @@ import { SUI_SYSTEM_STATE_OBJECT_ID } from "@mysten/sui/utils";
 import type { DataType as Contract } from "./Contracts";
 import { SUI_MIST, PACKAGE_ID, CONTRACTS_CONTAINER } from "@/config/constants";
 import { useNetworkVariable } from "@/config";
+import { useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 const SignContractModal = (
   {
@@ -55,6 +57,12 @@ const SignContractModal = (
         },
       }),
   });
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
 
   // console.log("user in child = ", storeData);
   const onSignContract = async () => {
@@ -114,19 +122,19 @@ const SignContractModal = (
                   resolve("");
                   messageApi.open({
                     type: "success",
-                    content: "交易成功",
+                    content: dict?.My.transactionSucess // "交易成功",
                   });
                   setOpen(false);
                   onSuccess && onSuccess();
                 } else {
-                  reject(new Error("签署合同失败: " + res.statusText));
+                  reject(new Error(dict?.My.signContractFail + ": " + res.statusText));
                 }
               } else {
-                reject(new Error("交易失败, digest: " + data.digest));
+                reject(new Error(dict?.My.transactionFail + ", digest: " + data.digest));
               }
             },
             onError: (err) => {
-              console.error("交易失败: " + err);
+              console.error(dict?.My.transactionFail + ": " + err);
               reject(err);
             },
           }
@@ -149,11 +157,11 @@ const SignContractModal = (
 
   return (
     <Modal
-      title={<p>签署合同</p>}
+      title={<p>dict?.My.signContract</p>}
       open={open}
       maskClosable={false}
       onCancel={() => setOpen(false)}
-      cancelText="取消"
+      cancelText={dict?.My.cancel}
       // eslint-disable-next-line react/jsx-no-duplicate-props
       footer={(_, { OkBtn, CancelBtn }) => (
         <div className="flex justify-between items-center w-full">
@@ -164,7 +172,8 @@ const SignContractModal = (
               setIsAgree(e.target.checked);
             }}
           >
-            已阅读条款并同意
+            {/* 已阅读条款并同意 */}
+            {dict?.My.readAndAgree}
           </Checkbox>
           <Space>
             <Button
@@ -173,7 +182,7 @@ const SignContractModal = (
               onClick={onSignContract}
               loading={loading}
             >
-              签约
+              {dict?.My.signContract}
             </Button>
             <CancelBtn />
           </Space>
@@ -181,20 +190,19 @@ const SignContractModal = (
       )}
     >
       <section className="text-center">
-        <h4 className="pb-3">领养协议条款</h4>
+        <h4 className="pb-3">{dict?.My.rules}</h4>
       </section>
       <section>
         <p className="mt-2">
-          1. 领养人将支付 &nbsp;
+          {dict?.My['r1-1']} &nbsp;
           <span className="text-red-500">
             {(contract && contract.deposit / SUI_MIST) || 0}
           </span>
           &nbsp;
-          SUI，作为押金。押金和产生的利息将根据回访结果结果返还，返还规则：全部回访通过，则返还全部押金，否则按通过比例返还。
+          SUI，{dict?.My['r1-2']}
         </p>
         <p className="mt-2">
-          2.
-          如果有恶意弃养动物的情况，则不退还押金，并会在社交平台曝光弃养行为。
+          {dict?.My['r2']}
         </p>
       </section>
     </Modal>

@@ -93,7 +93,7 @@ const CreateContractForm = ({ petApply }) => {
                     resolve();
                   }
               } else {
-                reject(new Error('交易失败: ' + data.digest));
+                reject(new Error('Transaction failed: ' + data.digest));
               }
             },
             onError: (err) => {
@@ -106,7 +106,7 @@ const CreateContractForm = ({ petApply }) => {
 
       setMessage({
         type: 'success',
-        msg: '合同创建成功',
+        msg: 'Contract created successfully',
       });
     } catch (e) {
       console.error(e);
@@ -134,10 +134,10 @@ const CreateContractForm = ({ petApply }) => {
       <Box paddingTop={2} paddingBottom={2}>
         <Box paddingTop={2}>
           <Field.Root>
-            <Field.Label>押金数量(SUI)</Field.Label>
+            <Field.Label>Deposit(SUI)</Field.Label>
             <Field.Input
               type="text"
-              placeholder="填写押金(SUI)"
+              placeholder="Input deposit amount(SUI)"
               onChange={(e) => setDeposit(e.target.value)}
               value={deposit}
             />
@@ -146,10 +146,10 @@ const CreateContractForm = ({ petApply }) => {
         </Box>
         <Box paddingTop={2}>
           <Field.Root>
-            <Field.Label>回访次数</Field.Label>
+            <Field.Label>Number of follow-up visits</Field.Label>
             <Field.Input
               type="text"
-              placeholder="填写回访次数"
+              placeholder="Input number of follow-up visits"
               onChange={(e) => setRecordTimes(e.target.value)}
               value={recordTimes}
             />
@@ -158,7 +158,7 @@ const CreateContractForm = ({ petApply }) => {
         </Box>
       </Box>
       <Button type="submit" disabled={loading} onClick={handleSubmit}>
-        {loading ? '提交中...' : '创建合同'}
+        {loading ? 'Submitting...' : 'Create Contract'}
       </Button>
     </>
   );

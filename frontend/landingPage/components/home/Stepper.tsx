@@ -35,34 +35,34 @@ const Feature = ({
           className="flex items-center gap-2 text-white"
           aria-label="Get Boilerplate"
         >
-          前往领养中心
+          {locale.goto}
         </Button>
       </Link>
       <Steps
         items={[
           {
-            title: '填写申请',
+            title: locale.step1Title,
             status: 'finish',
             icon: <UserOutlined />,
-            description: '选择要领养的动物，填写申请信息'
+            description: locale.step1Description
           },
           {
-            title: '平台审核',
+            title: locale.step2Title,
             status: 'finish',
             icon: <SolutionOutlined />,
-            description: '平台审核申请，通过后签署合同并支付押金'
+            description: locale.step2Description
           },
           {
-            title: '定期回访',
+            title: locale.step3Title,
             status: 'finish',
             icon: <AuditOutlined />,
-            description: '平台定期回访，查看领养情况。根据回访结果决定是否回收动物'
+            description: locale.step3Description
           },
           {
-            title: '完成领养',
+            title: locale.step4Title,
             status: 'finish',
             icon: <SmileOutlined />,
-            description: '根据回访结果，决定是否可以完成领养，并退回押金'
+            description: locale.step4Description
           },
         ]}
       />

@@ -113,7 +113,7 @@ const CreateContractForm = ({ record }) => {
 
                 resolve('');
               } else {
-                reject(new Error('交易失败: ' + data.digest));
+                reject(new Error('Transaction failed: ' + data.digest));
               }
             },
             onError: (err) => {
@@ -154,19 +154,19 @@ const CreateContractForm = ({ record }) => {
       <Box paddingTop={2} paddingBottom={2}>
         <Box paddingTop={2}>
           <Field.Root>
-            <Field.Label>审核结果</Field.Label>
+            <Field.Label>Reivew result</Field.Label>
             <SingleSelect onChange={setResult} value={result}>
-              <SingleSelectOption value="Pass">通过</SingleSelectOption>
-              <SingleSelectOption value="Reject">不通过</SingleSelectOption>
+              <SingleSelectOption value="Pass">Pass</SingleSelectOption>
+              <SingleSelectOption value="Reject">Fail</SingleSelectOption>
             </SingleSelect>
             <Field.Error />
           </Field.Root>
         </Box>
         <Box paddingTop={2}>
           <Field.Root>
-            <Field.Label>评论</Field.Label>
+            <Field.Label>Comment</Field.Label>
             <Textarea
-              placeholder="请填写审核评论"
+              placeholder="Input comment"
               name="comment"
               onChange={(v) => {
                 setComment(v.target.value);
@@ -177,7 +177,7 @@ const CreateContractForm = ({ record }) => {
         </Box>
       </Box>
       <Button type="submit" disabled={loading} onClick={handleSubmit}>
-        {loading ? '提交中...' : '提交'}
+        {loading ? 'Submiting...' : 'Submit'}
       </Button>
     </>
   );

@@ -12,7 +12,8 @@ import petsJson from "@/raw-datas/1.json";
 import PetDetailModal from "./PetDetailModal";
 import AdoptApplyModal from "./AdoptApplyModal";
 import { AppStoreContext } from "@/components/AppStoreProvider";
-import { redirect } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
+import { getDictionary } from "@/lib/i18n";
 
 const { confirm } = Modal;
 
@@ -25,6 +26,13 @@ export function PetList() {
   const storeData: any = useContext(AppStoreContext);
   const [searchType, setSearchType] = useState("");
   const queryClient = useQueryClient();
+  const [dict, setDict] = useState<any>();
+  const params = useParams();
+  const lang = params.lang as string;
+
+  useEffect(() => {
+    getDictionary(lang).then(setDict);
+  }, [lang]);
 
   const fetchPets = useCallback(
     async ({ pageParam = 1 }) => {
@@ -110,11 +118,11 @@ export function PetList() {
     // console.log("onAdopt");
     if (!storeData.user) {
       confirm({
-        title: "提示",
+        title: dict?.AdoptionCenter.tips,
         icon: <ExclamationCircleFilled />,
-        content: "请先登录",
-        okText: "去登录",
-        cancelText: "取消",
+        content: dict?.AdoptionCenter.loginFirst,
+        okText: dict?.AdoptionCenter.toLogin,
+        cancelText: dict?.AdoptionCenter.cancel,
         onOk() {
           redirect("/zh/login");
         },
@@ -125,7 +133,7 @@ export function PetList() {
     if (!account) {
       messageApi.open({
         type: "warning",
-        content: "请先连接钱包",
+        content: dict?.AdoptionCenter.connectWallet,
       });
       return;
     }
@@ -152,8 +160,17 @@ export function PetList() {
           })}
         </div>
         <div ref={ref} className="h-10 flex items-center justify-center">
-          { isFetchingNextPage && (<Spin tip="加载中..."></Spin>) }
-          { hasNextPage ? "加载更多" : (status !== 'pending' ? "没有更多了" : "")}
+          {isFetchingNextPage && (
+            <Spin
+              tip={dict?.AdoptionCenter.loading + "..."}
+              size="large"
+            ></Spin>
+          )}
+          {hasNextPage
+            ? dict?.AdoptionCenter.loadMore
+            : status !== "pending"
+            ? dict?.AdoptionCenter.loadMore
+            : ""}
         </div>
         <PetDetailModal
           ref={detailModal}
